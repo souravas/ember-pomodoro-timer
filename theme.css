@@ -46,7 +46,8 @@
   /* Native UI (scrollbars, form controls) follows the room's lightness. */
   color-scheme: dark;
 }
-[data-theme='light'] {
+[data-theme='light'],
+[data-theme='porcelain'] {
   color-scheme: light;
 }
 
@@ -206,6 +207,160 @@
   --accent-ink: #1e1e2e;
   --scrim: rgba(12, 12, 20, 0.55);
   --grain: 0.045;
+}
+
+/* Midnight — deep navy, cold starlight. */
+[data-theme='midnight'] {
+  --bg: #0a0e1a;
+  --bg-raise: #11172a;
+  --bg-sink: #060912;
+  --line: rgba(214, 224, 245, 0.1);
+  --line-faint: rgba(214, 224, 245, 0.06);
+  --line-strong: rgba(214, 224, 245, 0.28);
+  --ink: #d6e0f5;
+  --ink-dim: rgba(214, 224, 245, 0.6);
+  --ink-faint: rgba(214, 224, 245, 0.36);
+  --accent-focus: #5da2f2;
+  --accent-short: #8fd0b8;
+  --accent-long: #a98ef5;
+  --accent-ink: #081020;
+  --scrim: rgba(3, 5, 10, 0.6);
+  --grain: 0.045;
+}
+
+/* Porcelain — cool light, glazed grey-blue. */
+[data-theme='porcelain'] {
+  --bg: #eef1f4;
+  --bg-raise: #f7f9fb;
+  --bg-sink: #e2e7ec;
+  --line: rgba(38, 44, 52, 0.13);
+  --line-faint: rgba(38, 44, 52, 0.08);
+  --line-strong: rgba(38, 44, 52, 0.32);
+  --ink: #262c34;
+  --ink-dim: rgba(38, 44, 52, 0.62);
+  --ink-faint: rgba(38, 44, 52, 0.4);
+  --accent-focus: #3b6fb5;
+  --accent-short: #4a7d62;
+  --accent-long: #7a63b8;
+  --accent-ink: #f4f8fd;
+  --scrim: rgba(38, 44, 52, 0.3);
+  --grain: 0.03;
+}
+
+/* Forest — campfire deep in the woods. */
+[data-theme='forest'] {
+  --bg: #161d18;
+  --bg-raise: #1d2620;
+  --bg-sink: #101511;
+  --line: rgba(216, 226, 212, 0.1);
+  --line-faint: rgba(216, 226, 212, 0.06);
+  --line-strong: rgba(216, 226, 212, 0.28);
+  --ink: #d8e2d4;
+  --ink-dim: rgba(216, 226, 212, 0.6);
+  --ink-faint: rgba(216, 226, 212, 0.36);
+  --accent-focus: #d9a05f;
+  --accent-short: #a7c080;
+  --accent-long: #83b6af;
+  --accent-ink: #16100a;
+  --scrim: rgba(7, 10, 8, 0.55);
+  --grain: 0.045;
+}
+
+/* Gruvbox — retro warm hardware. */
+[data-theme='gruvbox'] {
+  --bg: #282828;
+  --bg-raise: #32302f;
+  --bg-sink: #1d2021;
+  --line: rgba(235, 219, 178, 0.11);
+  --line-faint: rgba(235, 219, 178, 0.06);
+  --line-strong: rgba(235, 219, 178, 0.3);
+  --ink: #ebdbb2;
+  --ink-dim: rgba(235, 219, 178, 0.6);
+  --ink-faint: rgba(235, 219, 178, 0.36);
+  --accent-focus: #fe8019;
+  --accent-short: #b8bb26;
+  --accent-long: #83a598;
+  --accent-ink: #1d2021;
+  --scrim: rgba(14, 14, 12, 0.55);
+  --grain: 0.045;
+}
+
+/* ---------- flames ----------
+   Accent overrides on top of any theme: [data-accent] on <html> repaints the
+   focus accent (the flame); break colors stay the theme's own, so breaks
+   still read as cooling off. These blocks sit after the themes so they win
+   the equal-specificity tie on <html>. Each flame also has a deepened
+   variant for the light rooms, where the bright dark-room value would wash
+   out. 'auto' defines nothing — the theme's accent shows through. */
+
+[data-accent='ember'] {
+  --accent-focus: #e25c3f;
+  --accent-ink: #1a1310;
+}
+[data-accent='gold'] {
+  --accent-focus: #e3b04e;
+  --accent-ink: #221806;
+}
+[data-accent='mint'] {
+  --accent-focus: #79c995;
+  --accent-ink: #0e1f15;
+}
+[data-accent='teal'] {
+  --accent-focus: #54c2c2;
+  --accent-ink: #0b1d1d;
+}
+[data-accent='sky'] {
+  --accent-focus: #5da2f2;
+  --accent-ink: #0d1726;
+}
+[data-accent='violet'] {
+  --accent-focus: #a98ef5;
+  --accent-ink: #171029;
+}
+[data-accent='rose'] {
+  --accent-focus: #ef7fa7;
+  --accent-ink: #260f18;
+}
+/* Mono follows the room: ink-on-bg, so it works in every theme. */
+[data-accent='mono'] {
+  --accent-focus: var(--ink);
+  --accent-ink: var(--bg);
+}
+
+[data-theme='light'][data-accent='ember'],
+[data-theme='porcelain'][data-accent='ember'] {
+  --accent-focus: #c0452a;
+  --accent-ink: #f8f3e8;
+}
+[data-theme='light'][data-accent='gold'],
+[data-theme='porcelain'][data-accent='gold'] {
+  --accent-focus: #9a6f16;
+  --accent-ink: #faf4e6;
+}
+[data-theme='light'][data-accent='mint'],
+[data-theme='porcelain'][data-accent='mint'] {
+  --accent-focus: #2e7d52;
+  --accent-ink: #eefaf3;
+}
+[data-theme='light'][data-accent='teal'],
+[data-theme='porcelain'][data-accent='teal'] {
+  --accent-focus: #1d7d7d;
+  --accent-ink: #ecf8f8;
+}
+[data-theme='light'][data-accent='sky'],
+[data-theme='porcelain'][data-accent='sky'] {
+  --accent-focus: #2f6cc4;
+  --accent-ink: #f0f5fc;
+}
+[data-theme='light'][data-accent='violet'],
+[data-theme='porcelain'][data-accent='violet'] {
+  --accent-focus: #6a4ec9;
+  --accent-ink: #f3f0fc;
+}
+[data-theme='light'][data-accent='rose'],
+[data-theme='porcelain'][data-accent='rose'] {
+  --accent-focus: #c14a78;
+  --accent-ink: #fcf0f5;
 }
 
 [data-phase='shortBreak'] {
@@ -450,6 +605,10 @@ button {
   height: 10px;
   border-radius: 50%;
   background: var(--accent-focus);
+}
+/* The "theme default" flame swatch: a little of everything. */
+.swatch[data-accent='auto']::after {
+  background: conic-gradient(#e25c3f, #e3b04e, #79c995, #5da2f2, #a98ef5, #e25c3f);
 }
 .swatch:hover {
   transform: translateY(-1px);

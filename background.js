@@ -4,9 +4,12 @@
 
 import {
   DEFAULT_SETTINGS,
+  MODES,
   PHASE_LABEL,
   defaultState,
+  elapsedMs,
   nextPhase,
+  normalizeState,
   phaseDurationMs,
   phaseTotalMs,
   remainingMs,
@@ -20,6 +23,8 @@ const PHASE_COLOR = {
   focus: '#E25C3F',
   shortBreak: '#A8BD8F',
   longBreak: '#93AFC0',
+  timer: '#E25C3F',
+  stopwatch: '#E25C3F',
 };
 
 async function getState() {
@@ -27,7 +32,7 @@ async function getState() {
   if (!state) return defaultState();
   // Merge settings so new defaults appear after extension updates.
   state.settings = { ...DEFAULT_SETTINGS, ...state.settings };
-  return state;
+  return normalizeState(state);
 }
 
 async function setState(state) {
@@ -43,7 +48,8 @@ chrome.runtime.onInstalled.addListener(async () => {
 chrome.runtime.onStartup.addListener(async () => {
   const state = await getState();
   // If Chrome was closed past the end of a running phase, complete it now.
-  if (state.status === 'running' && state.endsAt <= Date.now()) {
+  // (A running stopwatch has no end — its endsAt is the virtual start.)
+  if (state.status === 'running' && state.mode !== 'stopwatch' && state.endsAt <= Date.now()) {
     await completePhase(state);
   } else {
     await updateBadge(state);
@@ -57,6 +63,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     reset,
     skip,
     extend: (s) => extend(s, msg.minutes),
+    setMode: (s) => setMode(s, msg.mode),
     updateSettings: (s) => updateSettings(s, msg.settings),
     chimeDone: closeOffscreen,
   };
@@ -82,15 +89,20 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 async function start(state) {
   if (state.status === 'running') return state;
   state.status = 'running';
-  state.endsAt = Date.now() + state.remainingMs;
-  await chrome.alarms.create(ALARM_PHASE_END, { when: state.endsAt });
+  if (state.mode === 'stopwatch') {
+    // Counting up: no end alarm; endsAt is the virtual start.
+    state.endsAt = Date.now() - state.remainingMs;
+  } else {
+    state.endsAt = Date.now() + state.remainingMs;
+    await chrome.alarms.create(ALARM_PHASE_END, { when: state.endsAt });
+  }
   await chrome.alarms.create(ALARM_BADGE_TICK, { periodInMinutes: 1 });
   return setState(state);
 }
 
 async function pause(state) {
   if (state.status !== 'running') return state;
-  state.remainingMs = remainingMs(state);
+  state.remainingMs = state.mode === 'stopwatch' ? elapsedMs(state) : remainingMs(state);
   state.status = 'paused';
   state.endsAt = null;
   await clearAlarms();
@@ -100,10 +112,20 @@ async function pause(state) {
 async function reset(state) {
   state.status = 'idle';
   state.endsAt = null;
-  state.remainingMs = phaseDurationMs(state.phase, state.settings);
+  state.remainingMs =
+    state.mode === 'stopwatch' ? 0 : phaseDurationMs(state.phase, state.settings);
   state.extendedMs = 0;
   await clearAlarms();
   return setState(state);
+}
+
+// Switching mode abandons the current run but keeps pomodoro cycle progress
+// for when the user switches back.
+async function setMode(state, mode) {
+  if (!MODES.includes(mode) || state.mode === mode) return state;
+  state.mode = mode;
+  state.phase = mode === 'pomodoro' ? 'focus' : mode;
+  return reset(state); // clears alarms and adopts the mode's duration
 }
 
 // Stretch the running phase only — the saved durations are untouched.
@@ -122,13 +144,17 @@ async function clearAlarms() {
 }
 
 // Skip moves to the next phase without crediting the current one.
+// Only the pomodoro cycle has a next phase to skip to.
 function skip(state) {
+  if (state.mode !== 'pomodoro') return state;
   return advance(state, { credit: false });
 }
 
 async function completePhase(state) {
   if (state.settings.notifications) notifyPhaseEnd(state);
   if (state.settings.sound) playChime();
+  // A one-shot timer just rearms itself; nothing advances, nothing counts.
+  if (state.mode === 'timer') return reset(state);
   return advance(state, { credit: true });
 }
 
@@ -179,7 +205,10 @@ async function recordFocusSession(minutes) {
 async function updateBadge(state) {
   let text = '';
   if (state.status === 'running') {
-    text = `${Math.ceil(remainingMs(state) / 60_000)}m`;
+    text =
+      state.mode === 'stopwatch'
+        ? `${Math.floor(elapsedMs(state) / 60_000)}m`
+        : `${Math.ceil(remainingMs(state) / 60_000)}m`;
   } else if (state.status === 'paused') {
     text = '||';
   }
@@ -191,6 +220,16 @@ async function updateBadge(state) {
 }
 
 function notifyPhaseEnd(state) {
+  if (state.mode === 'timer') {
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: 'icons/icon128.png',
+      title: 'Timer finished',
+      message: `Your ${Math.round(phaseTotalMs(state) / 60_000)} minute timer is up.`,
+      silent: true, // we play our own chime
+    });
+    return;
+  }
   const ended = PHASE_LABEL[state.phase];
   const next = PHASE_LABEL[nextPhase(state)];
   const title = state.phase === 'focus' ? 'Focus session complete' : 'Break is over';

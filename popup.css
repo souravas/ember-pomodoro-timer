@@ -37,6 +37,10 @@ header {
     color 0.8s ease,
     text-shadow 0.8s ease;
 }
+/* Past the hour the digits read h:mm:ss — two more characters to fit. */
+.time[data-size='long'] {
+  font-size: 40px;
+}
 
 .bar {
   width: 100%;
@@ -94,6 +98,38 @@ header {
   align-items: center;
   gap: 8px;
   margin-top: 2px;
+}
+
+/* Timer and stopwatch have no cycle to show and no phase to skip to. */
+[data-mode='timer'] .dots,
+[data-mode='stopwatch'] .dots {
+  visibility: hidden;
+}
+[data-mode='timer'] #skip,
+[data-mode='stopwatch'] #skip {
+  display: none;
+}
+
+/* Mode tabs — pomodoro · timer · stopwatch. */
+.modes {
+  display: flex;
+  gap: 14px;
+}
+.mode {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 4px 2px;
+  transition: color 0.25s ease;
+}
+.mode:hover {
+  color: var(--ink-dim);
+}
+.mode.active {
+  color: var(--accent);
 }
 
 .extend {

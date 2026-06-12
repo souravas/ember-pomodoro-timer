@@ -1,13 +1,19 @@
 // Shared by popup.js and app.js: state access, actions, and a display ticker.
 // Views never mutate state — they message the service worker and re-render.
 
-import { DEFAULT_SETTINGS, defaultState, remainingMs } from './core/timer.js';
+import {
+  DEFAULT_SETTINGS,
+  defaultState,
+  displayMs,
+  normalizeState,
+  remainingMs,
+} from './core/timer.js';
 
 export async function getState() {
   const { state } = await chrome.storage.local.get('state');
   if (!state) return defaultState();
   state.settings = { ...DEFAULT_SETTINGS, ...state.settings };
-  return state;
+  return normalizeState(state);
 }
 
 export function send(type, extra = {}) {
@@ -43,7 +49,13 @@ export function createTicker(render) {
   }
 
   function schedule() {
-    const untilFlip = (remainingMs(state) + 500) % 1000 || 1000;
+    // Counting down, the shown value flips when the remainder crosses each
+    // half-second mark going down; counting up (stopwatch), going up.
+    const shown = displayMs(state);
+    const untilFlip =
+      state.mode === 'stopwatch'
+        ? (1500 - (shown % 1000)) % 1000 || 1000
+        : (shown + 500) % 1000 || 1000;
     timer = setTimeout(tick, untilFlip + 15);
   }
 
@@ -58,8 +70,11 @@ export function createTicker(render) {
 
 // Extend chips only appear when the end is near — that is the moment the
 // feature serves; the rest of the time the running view stays clean.
+// (The stopwatch has no end to extend.)
 export function extendVisible(state) {
-  return state.status === 'running' && remainingMs(state) <= 5 * 60_000;
+  return (
+    state.mode !== 'stopwatch' && state.status === 'running' && remainingMs(state) <= 5 * 60_000
+  );
 }
 
 export function bindExtendButtons(onUpdate) {
@@ -120,52 +135,124 @@ export function bindDurationFields(getSettings, onUpdate) {
 export const THEMES = [
   { id: 'ember', label: 'Ember' },
   { id: 'light', label: 'Light' },
+  { id: 'porcelain', label: 'Porcelain' },
   { id: 'dark', label: 'Dark' },
   { id: 'amoled', label: 'AMOLED' },
+  { id: 'midnight', label: 'Midnight' },
+  { id: 'forest', label: 'Forest' },
+  { id: 'gruvbox', label: 'Gruvbox' },
   { id: 'rose', label: 'Rosé Pine' },
   { id: 'dracula', label: 'Dracula' },
   { id: 'nord', label: 'Nord' },
   { id: 'catppuccin', label: 'Catppuccin' },
 ];
 
-// The attribute lives on <html> so theme-boot.js can set it before first
-// paint; localStorage mirrors the setting for that same early read.
-export function applyTheme(theme) {
-  if (document.documentElement.dataset.theme === theme) return;
-  document.documentElement.dataset.theme = theme;
-  try {
-    localStorage.setItem('ember-theme', theme);
-  } catch {
-    // Mirror only — the popup just falls back to the default until state loads.
+// Flame (accent) overrides — any of these on top of any theme. 'auto' keeps
+// the theme's own accent. Colors live in theme.css under [data-accent].
+export const ACCENTS = [
+  { id: 'auto', label: 'Theme default' },
+  { id: 'ember', label: 'Ember' },
+  { id: 'gold', label: 'Gold' },
+  { id: 'mint', label: 'Mint' },
+  { id: 'teal', label: 'Teal' },
+  { id: 'sky', label: 'Sky' },
+  { id: 'violet', label: 'Violet' },
+  { id: 'rose', label: 'Rose' },
+  { id: 'mono', label: 'Mono' },
+];
+
+// The attributes live on <html> so theme-boot.js can set them before first
+// paint; localStorage mirrors the settings for that same early read.
+export function applyTheme(theme, accent = 'auto') {
+  const el = document.documentElement;
+  if (el.dataset.theme !== theme) {
+    el.dataset.theme = theme;
+    mirror('ember-theme', theme);
+  }
+  if (el.dataset.accent !== accent) {
+    el.dataset.accent = accent;
+    mirror('ember-accent', accent);
   }
 }
 
-// Builds swatch buttons into #themes (when the page has one) and returns a
-// renderer that marks the active swatch and names it in #theme-name.
-export function bindThemePicker(onUpdate) {
-  const wrap = document.getElementById('themes');
+function mirror(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Mirror only — the page just falls back to the default until state loads.
+  }
+}
+
+// Builds swatch buttons into a container and returns a renderer that marks
+// the active swatch and names it. Shared by the theme and accent pickers —
+// they differ only in which data attribute and setting they drive.
+function bindSwatchPicker(onUpdate, { containerId, nameId, options, attr, settingKey, kind }) {
+  const wrap = document.getElementById(containerId);
   if (!wrap) return () => {};
-  for (const t of THEMES) {
+  for (const opt of options) {
     const btn = document.createElement('button');
     btn.className = 'swatch';
-    btn.dataset.theme = t.id;
-    btn.title = t.label;
-    btn.setAttribute('aria-label', `${t.label} theme`);
+    btn.dataset[attr] = opt.id;
+    btn.title = opt.label;
+    btn.setAttribute('aria-label', `${opt.label} ${kind}`);
     btn.addEventListener('click', async () => {
-      onUpdate(await send('updateSettings', { settings: { theme: t.id } }));
+      onUpdate(await send('updateSettings', { settings: { [settingKey]: opt.id } }));
     });
     wrap.append(btn);
   }
-  const name = document.getElementById('theme-name');
+  const name = document.getElementById(nameId);
   return (state) => {
+    const current = state.settings[settingKey];
     for (const btn of wrap.children) {
-      const active = btn.dataset.theme === state.settings.theme;
+      const active = btn.dataset[attr] === current;
       btn.classList.toggle('active', active);
       btn.setAttribute('aria-pressed', String(active));
     }
     if (name) {
-      const active = THEMES.find((t) => t.id === state.settings.theme);
-      name.textContent = (active?.label ?? state.settings.theme).toLowerCase();
+      const active = options.find((o) => o.id === current);
+      name.textContent = (active?.label ?? current).toLowerCase();
+    }
+  };
+}
+
+export function bindThemePicker(onUpdate) {
+  return bindSwatchPicker(onUpdate, {
+    containerId: 'themes',
+    nameId: 'theme-name',
+    options: THEMES,
+    attr: 'theme',
+    settingKey: 'theme',
+    kind: 'theme',
+  });
+}
+
+export function bindAccentPicker(onUpdate) {
+  return bindSwatchPicker(onUpdate, {
+    containerId: 'accents',
+    nameId: 'accent-name',
+    options: ACCENTS,
+    attr: 'accent',
+    settingKey: 'accent',
+    kind: 'flame',
+  });
+}
+
+// Wires the pomodoro/timer/stopwatch tabs (when the page has them) and
+// returns a renderer that marks the active mode.
+export function bindModeSwitch(onUpdate) {
+  const wrap = document.getElementById('modes');
+  if (!wrap) return () => {};
+  const tabs = [...wrap.querySelectorAll('button[data-mode]')];
+  for (const btn of tabs) {
+    btn.addEventListener('click', async () => {
+      onUpdate(await send('setMode', { mode: btn.dataset.mode }));
+    });
+  }
+  return (state) => {
+    for (const btn of tabs) {
+      const active = btn.dataset.mode === state.mode;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', String(active));
     }
   };
 }

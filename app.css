@@ -136,7 +136,7 @@ body {
   touch-action: none;
   user-select: none;
 }
-[data-status='idle'] .ring-wrap {
+[data-status='idle']:not([data-mode='stopwatch']) .ring-wrap {
   cursor: grab;
 }
 .dialing .ring-wrap {
@@ -146,7 +146,8 @@ body {
 .dialing .ring-progress {
   transition: stroke 0.6s ease;
 }
-.dialing .status-hint {
+.dialing .status-hint,
+.dialing .ends-at {
   color: var(--accent);
 }
 .ring {
@@ -166,13 +167,75 @@ body {
     transform 0.25s linear,
     opacity 0.6s ease;
 }
-.ring-tip circle {
+.ring-tip .tip-spark {
   fill: var(--accent);
   filter: drop-shadow(0 0 6px var(--accent));
-  transition: fill 0.6s ease;
+  transition: fill 0.6s ease, r 0.3s ease;
 }
-[data-status='running'] .ring-tip circle {
+[data-status='running'] .ring-tip .tip-spark {
   animation: tip-flicker 2.6s ease-in-out infinite;
+}
+
+/* Idle, the tip becomes a visible handle: a haloed knob at the end of the
+   arc, breathing gently — "this is the thing you grab". */
+.tip-halo {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 0.4s ease, stroke 0.6s ease;
+}
+[data-status='idle'] .tip-halo {
+  opacity: 0.9;
+  animation: halo-breathe 2.4s ease-in-out infinite;
+}
+[data-status='idle'] .ring-tip .tip-spark {
+  r: 6px;
+}
+[data-status='idle'] .ring-wrap:hover .tip-halo,
+.dialing .tip-halo {
+  animation: none;
+  opacity: 1;
+  transform: scale(1.25);
+}
+/* No dial to grab in stopwatch mode. */
+[data-mode='stopwatch'] .tip-halo {
+  display: none;
+}
+[data-mode='stopwatch'][data-status='idle'] .ring-tip .tip-spark {
+  r: 4.5px;
+}
+@keyframes halo-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Minute marks: surface on hover as a "this is a dial" cue, fully lit while
+   dragging. */
+.ring-ticks {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.ring-ticks line {
+  stroke: var(--line);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.ring-ticks line.major {
+  stroke: var(--line-strong);
+}
+[data-status='idle']:not([data-mode='stopwatch']) .ring-wrap:hover .ring-ticks {
+  opacity: 0.55;
+}
+.dialing .ring-ticks {
+  opacity: 1;
 }
 @keyframes tip-flicker {
   0%,
@@ -252,6 +315,19 @@ body {
     color 0.8s ease,
     text-shadow 0.8s ease;
 }
+/* Past the hour the digits read h:mm:ss — two more characters to fit. */
+.time[data-size='long'] {
+  font-size: clamp(48px, 7.6vh, 70px);
+}
+.ends-at {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
+  color: var(--ink-dim);
+  min-height: 15px;
+  transition: color 0.3s ease;
+}
 .status-hint {
   font-family: var(--mono);
   font-size: 11px;
@@ -302,9 +378,40 @@ body {
   padding: 12px 20px;
 }
 
+/* Timer and stopwatch have no cycle to show and no phase to skip to —
+   visibility keeps the layout from jumping between modes. */
+[data-mode='timer'] .dots,
+[data-mode='stopwatch'] .dots,
+[data-mode='timer'] #skip,
+[data-mode='stopwatch'] #skip {
+  visibility: hidden;
+}
+
 footer {
   text-align: center;
   padding: 22px;
+}
+
+/* Mode tabs — pomodoro · timer · stopwatch. */
+.modes {
+  display: inline-flex;
+  gap: 26px;
+}
+.mode {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 6px 2px;
+  transition: color 0.25s ease;
+}
+.mode:hover {
+  color: var(--ink-dim);
+}
+.mode.active {
+  color: var(--accent);
 }
 
 /* ---------- settings slide-over ---------- */

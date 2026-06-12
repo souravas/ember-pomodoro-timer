@@ -1,14 +1,17 @@
 import {
   PHASE_LABEL,
+  displayMs,
+  formatClock,
   formatTime,
   remainingFraction,
-  remainingMs,
   todayKey,
 } from './core/timer.js';
 import {
   applyTheme,
+  bindAccentPicker,
   bindDurationFields,
   bindExtendButtons,
+  bindModeSwitch,
   bindThemePicker,
   createTicker,
   extendVisible,
@@ -38,39 +41,66 @@ function flare() {
   ring.classList.add('flare');
 }
 
+// The big digits switch to h:mm:ss past the hour; shrink so they still fit.
+function setTimeText(ms) {
+  const time = formatTime(ms);
+  setText($('time'), time);
+  $('time').dataset.size = time.length > 5 ? 'long' : 'normal';
+  return time;
+}
+
+function kickerText(state) {
+  if (state.mode === 'timer') return 'one-shot countdown';
+  if (state.mode === 'stopwatch') return 'counting up';
+  return state.phase === 'focus'
+    ? `session ${Math.min(state.cyclePos + 1, state.settings.longBreakEvery)} of ${state.settings.longBreakEvery}`
+    : 'take a breath';
+}
+
+function idleHint(state) {
+  if (state.mode === 'stopwatch') return 'press space to begin';
+  return 'drag the dial to set · space to start';
+}
+
 function render(next) {
   state = next;
   if (dialing) return; // the dial owns the display until the drag ends
-  applyTheme(state.settings.theme);
+  applyTheme(state.settings.theme, state.settings.accent);
+  document.body.dataset.mode = state.mode;
   document.body.dataset.phase = state.phase;
   document.body.dataset.status = state.status;
   if (lastPhase && lastPhase !== state.phase) flare();
   lastPhase = state.phase;
 
-  const ms = remainingMs(state);
-  const time = formatTime(ms);
-  document.body.classList.toggle('ending', state.status === 'running' && ms <= 60_000);
-  setText($('time'), time);
+  const ms = displayMs(state);
+  const time = setTimeText(ms);
+  document.body.classList.toggle(
+    'ending',
+    state.mode !== 'stopwatch' && state.status === 'running' && ms <= 60_000
+  );
   setText($('phase-label'), PHASE_LABEL[state.phase]);
   $('ring').style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - remainingFraction(state));
   $('tip').style.setProperty('--frac', remainingFraction(state));
   setText($('toggle'), state.status === 'running' ? 'Pause' : 'Start');
   setText(
+    $('ends-at'),
+    state.status === 'running' && state.mode !== 'stopwatch'
+      ? `ends ${formatClock(state.endsAt)}`
+      : ''
+  );
+  setText(
     $('status-hint'),
     {
-      idle: 'press space · drag ring to set',
+      idle: idleHint(state),
       running: '',
       paused: 'paused',
     }[state.status]
   );
   $('extend').classList.toggle('show', extendVisible(state));
-  setText(
-    $('session-kicker'),
-    state.phase === 'focus'
-      ? `session ${Math.min(state.cyclePos + 1, state.settings.longBreakEvery)} of ${state.settings.longBreakEvery}`
-      : 'take a breath'
-  );
+  setText($('session-kicker'), kickerText(state));
   renderDots($('dots'), state);
+  renderModes(state);
+  if (DIAL[state.phase]) buildTicks(DIAL[state.phase].max);
 
   document.title =
     state.status === 'running' ? `${time} · ${PHASE_LABEL[state.phase]} — Ember` : 'Ember';
@@ -155,10 +185,12 @@ $('scrim').addEventListener('click', () => setPanel(false));
 
 const renderDurations = bindDurationFields(() => state.settings, update);
 const renderTheme = bindThemePicker(update);
+const renderAccent = bindAccentPicker(update);
 
 function renderSettings() {
   renderDurations(state);
   renderTheme(state);
+  renderAccent(state);
   for (const input of settingToggles) {
     input.checked = state.settings[input.dataset.toggle];
   }
@@ -177,16 +209,41 @@ for (const input of settingToggles) {
 /* ---------- ring dial: drag to set the idle phase's length ---------- */
 
 // While dragging, the ring re-scales from "fraction remaining" to an
-// absolute clock face: a full circle is the phase's max minutes.
+// absolute clock face: a full circle is the phase's max minutes. The dial
+// snaps to 5-minute notches — the tick marks make the scale visible.
 const DIAL = {
-  focus: { key: 'focusMin', max: 90 },
+  focus: { key: 'focusMin', max: 120 },
   shortBreak: { key: 'shortBreakMin', max: 60 },
   longBreak: { key: 'longBreakMin', max: 90 },
+  timer: { key: 'timerMin', max: 120 },
 };
+const DIAL_STEP = 5;
 
 const ringWrap = document.querySelector('.ring-wrap');
 let dialing = false;
 let dialMin = 0;
+
+// One tick per notch, majors on the quarter-hour-ish anchors. Rebuilt only
+// when the scale (the phase's max) changes.
+function buildTicks(max) {
+  const ticks = $('ticks');
+  if (Number(ticks.dataset.max) === max) return;
+  ticks.dataset.max = max;
+  const majorEvery = max <= 60 ? 15 : 30;
+  const lines = [];
+  for (let m = 0; m < max; m += DIAL_STEP) {
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    const major = m % majorEvery === 0;
+    line.setAttribute('x1', '180');
+    line.setAttribute('y1', '26');
+    line.setAttribute('x2', '180');
+    line.setAttribute('y2', major ? '36' : '31');
+    line.setAttribute('transform', `rotate(${(m / max) * 360} 180 180)`);
+    if (major) line.setAttribute('class', 'major');
+    lines.push(line);
+  }
+  ticks.replaceChildren(...lines);
+}
 
 function dialDelta(e) {
   const rect = ringWrap.getBoundingClientRect();
@@ -202,15 +259,16 @@ function setDial(e) {
   // Fraction of a turn from 12 o'clock, clockwise.
   const turn = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
   const { max } = DIAL[state.phase];
-  dialMin = Math.min(max, Math.max(1, Math.round(turn * max)));
+  dialMin = Math.min(max, Math.max(DIAL_STEP, Math.round((turn * max) / DIAL_STEP) * DIAL_STEP));
   $('ring').style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - dialMin / max);
   $('tip').style.setProperty('--frac', dialMin / max);
-  $('time').textContent = formatTime(dialMin * 60_000);
+  setTimeText(dialMin * 60_000);
+  $('ends-at').textContent = `ends ${formatClock(Date.now() + dialMin * 60_000)}`;
   $('status-hint').textContent = 'release to set';
 }
 
 ringWrap.addEventListener('pointerdown', (e) => {
-  if (!state || state.status !== 'idle') return;
+  if (!state || state.status !== 'idle' || !DIAL[state.phase]) return;
   const { dx, dy, radius } = dialDelta(e);
   if (Math.hypot(dx, dy) < radius * 0.25) return; // dead zone at the hub
   e.preventDefault();
@@ -241,9 +299,10 @@ function endDial() {
   document.body.classList.remove('dialing');
 }
 
-/* ---------- extend chips ---------- */
+/* ---------- extend chips & mode tabs ---------- */
 
 bindExtendButtons(sync);
+const renderModes = bindModeSwitch(update);
 
 /* ---------- boot ---------- */
 

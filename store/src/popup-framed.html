@@ -36,6 +36,12 @@
         <button class="btn-ghost" data-extend="5">+5 min</button>
       </div>
 
+      <nav class="modes reveal" id="modes" style="--d: 0.21s" aria-label="Timer mode">
+        <button class="mode" data-mode="pomodoro" aria-pressed="true">pomodoro</button>
+        <button class="mode" data-mode="timer" aria-pressed="false">timer</button>
+        <button class="mode" data-mode="stopwatch" aria-pressed="false">stopwatch</button>
+      </nav>
+
       <footer class="reveal" style="--d: 0.24s">
         <button id="open-settings">settings</button>
         <button id="open-app">open full timer&ensp;&#8599;</button>
@@ -49,7 +55,7 @@
       </header>
 
       <div class="fields reveal" style="--d: 0.06s">
-        <div class="field" data-setting="focusMin" data-min="1" data-max="90">
+        <div class="field" data-setting="focusMin" data-min="1" data-max="120">
           <span>Focus</span>
           <div class="stepper">
             <button class="step" data-dir="-1">&minus;</button>
@@ -81,11 +87,24 @@
             <button class="step" data-dir="1">+</button>
           </div>
         </div>
+        <div class="field" data-setting="timerMin" data-min="1" data-max="120">
+          <span>Timer</span>
+          <div class="stepper">
+            <button class="step" data-dir="-1">&minus;</button>
+            <input class="value" type="text" inputmode="numeric" value="30" />
+            <button class="step" data-dir="1">+</button>
+          </div>
+        </div>
       </div>
 
       <div class="theme-block reveal" style="--d: 0.1s">
         <span class="kicker">theme · <span id="theme-name">ember</span></span>
         <div class="themes" id="themes"></div>
+      </div>
+
+      <div class="theme-block reveal" style="--d: 0.12s">
+        <span class="kicker">flame · <span id="accent-name">theme default</span></span>
+        <div class="themes" id="accents"></div>
       </div>
 
       <footer class="reveal" style="--d: 0.14s">
