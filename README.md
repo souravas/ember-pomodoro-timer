@@ -72,6 +72,10 @@ Quality-of-life around the cycle:
   **end-timestamp in `chrome.storage.local`** and phase changes fire from
   **`chrome.alarms`** — never `setTimeout`. Notification buttons survive a
   dead worker too: each notification's id encodes its buttons' actions.
+  The toolbar badge ticks once a minute by design: per-second badge
+  updates would need a worker keep-alive hack (alarms floor at 30s), and
+  every open Ember surface already shows live seconds — the badge is for
+  glancing, not watching.
 - [core/timer.js](core/timer.js) holds the pure phase/cycle logic, shared by
   the worker and all views so they can never disagree.
 - [core/stats.js](core/stats.js) holds the pure dashboard math over the
