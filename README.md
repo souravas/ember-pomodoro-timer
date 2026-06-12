@@ -24,6 +24,10 @@ Quality-of-life around the cycle:
 - **Global shortcut** — `Alt+Shift+P` starts/pauses from any tab (more
   commands bindable at `chrome://extensions/shortcuts`); the toolbar icon's
   right-click menu has start/pause · skip · stats.
+- **Focus on this** — select a task's text anywhere (an email, a ticket, a
+  doc), right-click → *Start focus on "…"* — the selection becomes the
+  session label and focus starts immediately. A running break is cut short;
+  a running focus just adopts the new label.
 - **Actionable notifications** — "Start focus" / "5 more break minutes"
   buttons right on the phase-end notification, plus one gentle reminder if a
   finished phase sits unstarted for 3 minutes.

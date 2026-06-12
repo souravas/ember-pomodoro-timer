@@ -141,6 +141,13 @@ function buildMenus() {
     chrome.contextMenus.create({ id: 'skip', title: 'Skip phase', contexts: ['action'] });
     chrome.contextMenus.create({ id: 'open-app', title: 'Open full timer', contexts: ['action'] });
     chrome.contextMenus.create({ id: 'open-stats', title: 'Open stats', contexts: ['action'] });
+    // Select a task's text anywhere — an email, a ticket, a doc — and turn
+    // it into a labeled focus session in two clicks. Chrome fills the %s.
+    chrome.contextMenus.create({
+      id: 'focus-selection',
+      title: 'Start focus on “%s”',
+      contexts: ['selection'],
+    });
   });
 }
 
@@ -150,7 +157,22 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
   else if (info.menuItemId === 'skip') await skip(state);
   else if (info.menuItemId === 'open-app') openApp();
   else if (info.menuItemId === 'open-stats') openApp('#stats');
+  else if (info.menuItemId === 'focus-selection') await startLabeledFocus(state, info.selectionText);
 });
+
+// "Focus on this": the selection becomes the session label and focus starts
+// now. A running break is cut short (its minutes were never work, nothing is
+// lost); a running focus simply adopts the new label and keeps burning.
+async function startLabeledFocus(state, text) {
+  const label = String(text ?? '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  if (!label) return state;
+  if (state.mode !== 'pomodoro') state = await setMode(state, 'pomodoro');
+  if (state.phase !== 'focus') state = await skip(state);
+  state.label = label;
+  state.labelDay = todayKey();
+  if (state.status === 'running') return setState(state);
+  return start(state);
+}
 
 function openApp(hash = '') {
   chrome.tabs.create({ url: chrome.runtime.getURL('app.html') + hash });

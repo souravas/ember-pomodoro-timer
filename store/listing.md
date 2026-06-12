@@ -40,6 +40,8 @@ THE TIMER
 • Strict focus (optional) — interrupting a focus session takes a deliberate
   press-and-hold instead of a stray click.
 • Global shortcut — Alt+Shift+P starts/pauses from any tab.
+• Focus on this — select a task's text on any page, right-click, and
+  "Start focus on …" begins a session labeled with it.
 
 GENTLE SITE BLOCKING (optional)
 
@@ -167,7 +169,10 @@ be turned off in settings.
 
 ```
 Adds start/pause, skip, and open-stats items to the toolbar icon's
-right-click menu, so the timer can be controlled without opening the popup.
+right-click menu, and a "Start focus on …" item to the selection
+right-click menu that starts a focus session labeled with the selected
+text. The selection is used only as the session label the user asked for;
+nothing else is read from the page.
 ```
 
 `sidePanel`
