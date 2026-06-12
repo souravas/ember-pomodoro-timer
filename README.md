@@ -33,6 +33,10 @@ Quality-of-life around the cycle:
   it; everything worked is banked together.
 - **Strict focus** (optional) — pause/reset/skip take a press-and-hold while
   focus runs.
+- **Site blocking** (optional) — list distracting sites in Settings and,
+  while focused work runs, their tabs rest on a quiet "it can wait" page
+  showing the time left; the moment the session ends (or you pause) the page
+  offers the way back. Subdomains included; pausing is the escape hatch.
 - **Duration presets** — 25·5, 50·10, 90·20 one-tap in Settings.
 - **Sound** — three chime voices with a volume slider and preview, an
   optional 30-second warning before a break ends, and optional ambient sound
@@ -52,9 +56,17 @@ Quality-of-life around the cycle:
 
 ## How it's built
 
-- **Manifest V3**, no remote code, no host permissions. Permissions used:
-  `alarms`, `storage`, `notifications`, `offscreen`, `idle` (lock-pause),
-  `contextMenus` (toolbar menu), `sidePanel`.
+- **Manifest V3**, no remote code, no install-time host permissions.
+  Permissions used: `alarms`, `storage`, `notifications`, `offscreen`,
+  `idle` (lock-pause), `contextMenus` (toolbar menu), `sidePanel`. Site
+  blocking needs `declarativeNetRequest` + host access, so those are
+  **optional permissions** — Chrome asks only when the toggle is first
+  flipped, and everything degrades gracefully if they're never granted.
+- Site blocking ([core/block.js](core/block.js)) turns the blocklist into
+  `declarativeNetRequest` dynamic rules that redirect listed domains (and
+  subdomains) to [blocked.html](blocked.html) — rules are synced on every
+  state write, so they can never drift from what the timer is doing, and
+  already-open tabs get walked to the blocked page when focus starts.
 - The service worker ([background.js](background.js)) is the single owner of
   timer state. MV3 kills workers after ~30s idle, so the timer is an
   **end-timestamp in `chrome.storage.local`** and phase changes fire from

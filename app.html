@@ -264,6 +264,34 @@
       </section>
 
       <section>
+        <h3 class="kicker">site blocking · while focus runs</h3>
+        <label class="field toggle-field">
+          <span>Block distracting sites</span>
+          <input type="checkbox" id="block-toggle" />
+          <i class="switch"></i>
+        </label>
+        <textarea
+          id="block-list"
+          class="block-list"
+          rows="4"
+          maxlength="2000"
+          spellcheck="false"
+          autocomplete="off"
+          placeholder="youtube.com&#10;reddit.com&#10;x.com"
+          aria-label="Sites to block, one per line"
+        ></textarea>
+        <p class="setting-note">
+          One site per line, subdomains included. Blocked tabs rest on a quiet
+          page until the session ends &mdash; pausing lifts the block. Chrome
+          asks for permission the first time.
+        </p>
+        <p class="setting-note warn" id="block-perm-note" hidden>
+          Permission missing on this machine &mdash; flip the toggle off and on
+          to grant it.
+        </p>
+      </section>
+
+      <section>
         <h3 class="kicker">sound</h3>
         <label class="field toggle-field">
           <span>Chime</span>

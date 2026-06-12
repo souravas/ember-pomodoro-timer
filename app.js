@@ -275,6 +275,9 @@ function renderSettings() {
   if (document.activeElement !== $('volume')) {
     $('volume').value = Math.round(state.settings.volume * 100);
   }
+  blockToggle.checked = state.settings.blockEnabled;
+  if (document.activeElement !== blockListInput) blockListInput.value = state.settings.blockList;
+  warnIfBlockPermMissing();
 }
 
 function markActive(buttons, isActive) {
@@ -310,6 +313,37 @@ for (const input of settingToggles) {
       })
     );
   });
+}
+
+/* ---------- site blocking: the toggle carries a permission ask ---------- */
+
+// Redirecting pages needs declarativeNetRequest plus host access — optional
+// permissions, so Chrome's consent dialog appears the first time the toggle
+// goes on (and never at install). Declined means the toggle stays off.
+const BLOCK_PERMS = { permissions: ['declarativeNetRequest'], origins: ['<all_urls>'] };
+const blockToggle = $('block-toggle');
+const blockListInput = $('block-list');
+
+blockToggle.addEventListener('change', async () => {
+  if (blockToggle.checked) {
+    const granted = await chrome.permissions.request(BLOCK_PERMS).catch(() => false);
+    if (!granted) {
+      blockToggle.checked = false;
+      return;
+    }
+  }
+  update(await send('updateSettings', { settings: { blockEnabled: blockToggle.checked } }));
+});
+
+blockListInput.addEventListener('change', async () => {
+  update(await send('updateSettings', { settings: { blockList: blockListInput.value } }));
+});
+
+// Settings sync across machines but permission grants don't — surface the
+// gap instead of letting the blocklist silently do nothing here.
+async function warnIfBlockPermMissing() {
+  const granted = await chrome.permissions.contains(BLOCK_PERMS).catch(() => false);
+  $('block-perm-note').hidden = !(state.settings.blockEnabled && !granted);
 }
 
 /* ---------- sound settings: voices, volume, ambient, previews ---------- */

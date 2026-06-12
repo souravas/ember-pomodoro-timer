@@ -15,18 +15,16 @@ import {
   phaseTotalMs,
   remainingMs,
   todayKey,
+  WORK_PHASES,
 } from './core/timer.js';
 import { appendEntry, clearLabel, entryId, removeEntry, renameLabel } from './core/log.js';
 import { formatHours, parseKey } from './core/stats.js';
+import { blockingActive, buildRules, matchesHosts, parseBlockList } from './core/block.js';
 
 const ALARM_PHASE_END = 'phase-end';
 const ALARM_BADGE_TICK = 'badge-tick';
 const ALARM_PRE_WARN = 'pre-warn'; // soft tick 30s before a break ends
 const ALARM_NAG = 'nag'; // one gentle reminder when a finished phase sits idle
-
-// Phases where the user is working (vs. resting) — what ambient sound plays
-// for, what the lock-pause protects, and what abandoning still credits.
-const WORK_PHASES = ['focus', 'timer', 'stopwatch'];
 
 const PHASE_COLOR = {
   focus: '#E25C3F',
@@ -47,6 +45,7 @@ async function getState() {
 async function setState(state) {
   await chrome.storage.local.set({ state });
   await updateBadge(state);
+  await syncBlocking(state);
   return state;
 }
 
@@ -454,6 +453,49 @@ async function adoptSyncedSettings() {
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && changes.settings) adoptSyncedSettings();
 });
+
+/* ---------- site blocking: DNR rules track the timer ---------- */
+
+// Every state write lands here (via setState), so the blocklist rules can
+// never drift from what the timer is doing. The declarativeNetRequest
+// permission is optional — granted the first time the user flips the toggle
+// — so everything is guarded: without the grant this is a no-op, and a
+// blocking failure must never break a phase transition.
+async function syncBlocking(state) {
+  if (!chrome.declarativeNetRequest) return;
+  try {
+    const granted = await chrome.permissions.contains({
+      permissions: ['declarativeNetRequest'],
+      origins: ['<all_urls>'],
+    });
+    if (!granted) return;
+    const hosts = blockingActive(state, WORK_PHASES) ? parseBlockList(state.settings.blockList) : [];
+    const existing = await chrome.declarativeNetRequest.getDynamicRules();
+    // setState runs on every action — skip the churn when nothing changed.
+    const had = existing.map((r) => r.condition.requestDomains?.[0]).sort();
+    if (had.length === hosts.length && [...hosts].sort().every((h, i) => h === had[i])) return;
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: existing.map((r) => r.id),
+      addRules: buildRules(hosts, chrome.runtime.getURL('blocked.html')),
+    });
+    // Rules only stop new page loads — a distraction already open in some
+    // tab stays put. Walk it to the blocked page too, with its URL so the
+    // page can offer the way back once the block lifts.
+    if (hosts.length) await sweepOpenTabs(hosts);
+  } catch {
+    // Permission revoked mid-flight, rule quota, transient API failure —
+    // the timer matters more than the blocklist.
+  }
+}
+
+async function sweepOpenTabs(hosts) {
+  const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
+  for (const tab of tabs) {
+    if (!matchesHosts(tab.url, hosts)) continue;
+    const url = `${chrome.runtime.getURL('blocked.html')}?url=${encodeURIComponent(tab.url)}`;
+    await chrome.tabs.update(tab.id, { url }).catch(() => {});
+  }
+}
 
 /* ---------- the stats ledger ---------- */
 

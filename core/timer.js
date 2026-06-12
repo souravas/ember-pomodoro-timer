@@ -19,6 +19,8 @@ export const DEFAULT_SETTINGS = {
   overtime: false, // focus/timer runs past zero, counting up, until ended
   strict: false, // pause/reset/skip need a press-and-hold during focus
   goalMin: 0, // daily focus goal in minutes; 0 = off
+  blockEnabled: false, // redirect blocklisted sites while focused work runs
+  blockList: '', // sites to block, one per line — see core/block.js
   showBadge: true,
   theme: 'ember',
   accent: 'auto', // flame color override; 'auto' keeps the theme's own
@@ -33,6 +35,11 @@ export const PRESETS = [
 ];
 
 export const MODES = ['pomodoro', 'timer', 'stopwatch'];
+
+// Phases where the user is working (vs. resting) — what ambient sound plays
+// for, what the lock-pause protects, what abandoning still credits, and what
+// the site blocklist guards.
+export const WORK_PHASES = ['focus', 'timer', 'stopwatch'];
 
 export const PHASE_LABEL = {
   focus: 'focus',

@@ -1,0 +1,118 @@
+/* The quiet page a blocked site lands on. Same bones as the app: theme.css
+   owns the palette and type; this file only lays out the one column. */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(80% 60% at 50% 38%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%),
+    radial-gradient(120% 100% at 50% 120%, var(--bg-sink), transparent 60%),
+    var(--bg);
+}
+
+/* The same slow-breathing pool of light the app has behind its ring. */
+.glow {
+  position: fixed;
+  left: 50%;
+  top: 44%;
+  width: 640px;
+  height: 640px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--accent) 10%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+  transition: background 0.8s ease;
+}
+[data-status='running'] .glow {
+  animation: glow-breathe 6s ease-in-out infinite;
+}
+@keyframes glow-breathe {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+}
+
+.blocked {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 32px;
+  text-align: center;
+  max-width: 560px;
+}
+
+.phase-word {
+  font-size: clamp(44px, 8vw, 72px);
+}
+.dot {
+  color: var(--accent);
+}
+
+/* "youtube.com" — the thing that can wait, named. */
+.site {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  color: var(--ink-dim);
+  overflow-wrap: anywhere;
+}
+
+.time {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: clamp(40px, 7vw, 56px);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.working-on {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 19px;
+  color: var(--ink-dim);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.actions .btn-primary {
+  text-decoration: none;
+}
+
+.note {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--ink-faint);
+  margin-top: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-status='running'] .glow {
+    animation: none;
+  }
+}

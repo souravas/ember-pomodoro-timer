@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ember — it can wait</title>
+    <link rel="icon" href="icons/icon32.png" />
+    <script src="theme-boot.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <link rel="stylesheet" href="blocked.css" />
+  </head>
+  <body data-phase="focus" data-status="running">
+    <div class="glow" aria-hidden="true"></div>
+    <main class="blocked">
+      <p class="kicker reveal" id="kicker">focus in progress</p>
+      <h1 class="phase-word reveal" style="--d: 0.06s"><span id="headline">it can wait</span><span class="dot">.</span></h1>
+      <p class="site reveal" style="--d: 0.1s" id="site" hidden></p>
+      <div class="time reveal" style="--d: 0.14s" id="time"></div>
+      <p class="working-on reveal" style="--d: 0.18s" id="label" hidden></p>
+      <div class="actions reveal" style="--d: 0.22s">
+        <a class="btn-primary" id="return" hidden>carry on &rarr;</a>
+        <button class="btn-ghost" id="close-tab">close this tab</button>
+      </div>
+      <p class="note reveal" style="--d: 0.28s" id="note">
+        the block lifts when this session ends &mdash; or pause the timer.
+      </p>
+    </main>
+    <script type="module" src="blocked.js"></script>
+  </body>
+</html>

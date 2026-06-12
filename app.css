@@ -966,6 +966,37 @@ footer {
   padding: 6px 12px;
 }
 
+/* Site blocklist — one host per line, in the settings' quiet voice. */
+.block-list {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--ink);
+  background: var(--bg-sink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  resize: vertical;
+}
+.block-list:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.block-list::placeholder {
+  color: var(--ink-faint);
+}
+.setting-note {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+}
+.setting-note.warn {
+  color: var(--accent);
+}
+
 .data-actions {
   display: flex;
   flex-wrap: wrap;
