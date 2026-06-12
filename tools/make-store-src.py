@@ -37,7 +37,7 @@ def transform(src, title, helper, head_extra=''):
     html = html.replace(
         '<script src="theme-boot.js"></script>', '<script src="chrome-shim.js"></script>'
     )
-    html = re.sub(r'(href|src)="(theme\.css|app\.css|popup\.css|app\.js|popup\.js|icons/)', r'\1="../../\2', html)
+    html = re.sub(r'(href|src)="(theme\.css|app\.css|popup\.css|blocked\.css|app\.js|popup\.js|blocked\.js|icons/)', r'\1="../../\2', html)
     if head_extra:
         html = html.replace('</head>', head_extra + '  </head>')
     html = html.replace('</body>', helper + '  </body>')
@@ -55,4 +55,10 @@ def transform(src, title, helper, head_extra=''):
         head_extra='  <style>\n      body { overflow: hidden; }\n    </style>\n',
     )
 )
-print('rebuilt store/src/shot-app.html and store/src/popup-framed.html')
+
+(ROOT / 'store/src/shot-blocked.html').write_text(
+    transform('blocked.html', 'Ember blocked page — store screenshot', '')
+    .replace('<title>Ember — it can wait</title>', '<title>Ember blocked page — store screenshot</title>')
+)
+
+print('rebuilt store/src/shot-app.html, popup-framed.html, and shot-blocked.html')

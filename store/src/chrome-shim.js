@@ -24,6 +24,10 @@
     autoStartFocus: false,
     sound: true,
     notifications: true,
+    // ?block=1 shows site blocking configured — the settings shot and the
+    // blocked-page shot both want a believable list.
+    blockEnabled: q.get('block') === '1',
+    blockList: q.get('block') === '1' ? 'youtube.com\nreddit.com\nx.com' : '',
     theme: q.get('theme') ?? 'ember',
     accent: q.get('accent') ?? 'auto',
     weekStart: num('weekstart', 1), // 0 sun, 1 mon, 6 sat
@@ -144,6 +148,12 @@
       getURL: (p) => p,
       getManifest: () => ({ version: 'shot' }),
     },
-    tabs: { create() {} },
+    tabs: { create() {}, getCurrent: async () => null },
+    // The block toggle asks for optional permissions; in shots they're
+    // always already granted, so no permission-gap hint ever renders.
+    permissions: {
+      contains: async () => true,
+      request: async () => true,
+    },
   };
 })();
