@@ -49,6 +49,55 @@ body {
   }
 }
 
+/* A few of the app's focus embers, fainter — this room stays quiet. */
+.sparks {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.sparks i {
+  position: absolute;
+  bottom: -2vh;
+  left: var(--x);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+  filter: blur(0.4px);
+  opacity: 0;
+}
+[data-status='running'] .sparks i {
+  animation: spark-rise var(--t) linear var(--d) infinite;
+}
+@keyframes spark-rise {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--o);
+  }
+  70% {
+    opacity: calc(var(--o) * 0.5);
+  }
+  100% {
+    transform: translate(var(--sw), -78vh) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* Who intercepted the page — answered before the question forms. */
+.brand {
+  position: fixed;
+  top: 26px;
+  left: 36px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 20px;
+  color: var(--ink-dim);
+}
+
 .blocked {
   position: relative;
   display: flex;
@@ -99,8 +148,17 @@ body {
   gap: 12px;
   margin-top: 10px;
 }
+/* The return link wears the primary button's clothes; as an anchor it
+   needs its own box so the padding holds. */
 .actions .btn-primary {
+  display: inline-flex;
+  align-items: center;
   text-decoration: none;
+}
+
+/* Display rules above must never beat hidden (same guard app.css keeps). */
+[hidden] {
+  display: none !important;
 }
 
 .note {
@@ -112,7 +170,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-status='running'] .glow {
+  [data-status='running'] .glow,
+  [data-status='running'] .sparks i {
     animation: none;
   }
 }
