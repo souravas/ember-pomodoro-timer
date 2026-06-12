@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ember marquee promo — 1400×560</title>
+    <link rel="stylesheet" href="../../theme.css" />
+    <style>
+      html,
+      body {
+        width: 1400px;
+        height: 560px;
+        overflow: hidden;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        background:
+          radial-gradient(60% 90% at 72% 45%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%),
+          radial-gradient(120% 100% at 50% 130%, var(--bg-sink), transparent 60%),
+          var(--bg);
+      }
+      .copy {
+        flex: 1;
+        padding-left: 120px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+      .wordmark {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 30px;
+      }
+      .wordmark i {
+        font-style: normal;
+        color: var(--accent);
+      }
+      h1 {
+        font-family: var(--serif);
+        font-style: italic;
+        font-weight: 400;
+        font-size: 76px;
+        line-height: 1.04;
+        color: var(--ink);
+      }
+      h1 em {
+        color: var(--accent);
+      }
+      .tag {
+        font-family: var(--mono);
+        font-size: 13px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+      }
+      .ring-side {
+        width: 560px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ring-wrap {
+        position: relative;
+        width: 360px;
+        height: 360px;
+        filter: drop-shadow(0 0 28px color-mix(in srgb, var(--accent) 30%, transparent));
+      }
+      .ring-inner {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .time {
+        font-family: var(--mono);
+        font-weight: 500;
+        font-size: 76px;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .phase {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 30px;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body data-phase="focus">
+    <div class="copy">
+      <span class="wordmark">Ember<i>.</i></span>
+      <h1>Work in sprints.<br />Rest on <em>purpose.</em></h1>
+      <span class="tag">pomodoro timer · no account · no tracking</span>
+    </div>
+    <div class="ring-side">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 360 360" width="360" height="360" aria-hidden="true">
+          <circle cx="180" cy="180" r="164" stroke-width="6" fill="none" stroke="rgba(239,229,214,0.08)" />
+          <circle
+            cx="180"
+            cy="180"
+            r="164"
+            stroke-width="6"
+            fill="none"
+            stroke="#e25c3f"
+            stroke-linecap="round"
+            stroke-dasharray="1030.4"
+            stroke-dashoffset="290"
+            transform="rotate(-90 180 180)"
+          />
+        </svg>
+        <div class="ring-inner">
+          <div class="phase">focus</div>
+          <div class="time">17:48</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

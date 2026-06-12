@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ember</title>
+    <link rel="icon" href="icons/icon32.png" />
+    <link rel="stylesheet" href="theme.css" />
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body data-phase="focus" data-status="idle">
+    <div class="glow" aria-hidden="true"></div>
+
+    <header class="topbar reveal">
+      <span class="wordmark">Ember<span class="wordmark-dot">.</span></span>
+      <div class="topbar-right">
+        <span class="kicker" id="today-stat">today · 0 sessions</span>
+        <button class="btn-ghost" id="open-settings">Settings</button>
+      </div>
+    </header>
+
+    <main class="stage">
+      <p class="kicker reveal" style="--d: 0.05s" id="session-kicker">session 1 of 4</p>
+      <h1 class="phase-word reveal" style="--d: 0.1s" id="phase-label">focus</h1>
+
+      <div class="ring-wrap reveal" style="--d: 0.16s">
+        <svg class="ring" viewBox="0 0 360 360" aria-hidden="true">
+          <circle class="ring-track" cx="180" cy="180" r="164" stroke-width="5" />
+          <circle class="ring-progress" id="ring" cx="180" cy="180" r="164" stroke-width="5" />
+        </svg>
+        <div class="ring-inner">
+          <div class="time" id="time">25:00</div>
+          <div class="status-hint" id="status-hint">press space to begin</div>
+        </div>
+      </div>
+
+      <div class="dots reveal" style="--d: 0.22s" id="dots"></div>
+
+      <div class="controls reveal" style="--d: 0.28s">
+        <button class="btn-ghost" id="reset">Reset</button>
+        <button class="btn-primary" id="toggle">Start</button>
+        <button class="btn-ghost" id="skip">Skip</button>
+      </div>
+    </main>
+
+    <footer class="reveal" style="--d: 0.36s">
+      <span class="kicker">an unhurried pomodoro timer</span>
+    </footer>
+
+    <!-- Settings slide-over -->
+    <div class="scrim" id="scrim" hidden></div>
+    <aside class="panel" id="panel" aria-label="Settings">
+      <div class="panel-head">
+        <h2 class="phase-word">settings</h2>
+        <button class="btn-ghost" id="close-settings">Close</button>
+      </div>
+
+      <section>
+        <h3 class="kicker">durations · minutes</h3>
+        <div class="field" data-setting="focusMin" data-min="1" data-max="120">
+          <span>Focus</span>
+          <div class="stepper">
+            <button class="step" data-dir="-1">&minus;</button>
+            <output>25</output>
+            <button class="step" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="field" data-setting="shortBreakMin" data-min="1" data-max="60">
+          <span>Short break</span>
+          <div class="stepper">
+            <button class="step" data-dir="-1">&minus;</button>
+            <output>5</output>
+            <button class="step" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="field" data-setting="longBreakMin" data-min="1" data-max="90">
+          <span>Long break</span>
+          <div class="stepper">
+            <button class="step" data-dir="-1">&minus;</button>
+            <output>15</output>
+            <button class="step" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="field" data-setting="longBreakEvery" data-min="2" data-max="8">
+          <span>Long break every</span>
+          <div class="stepper">
+            <button class="step" data-dir="-1">&minus;</button>
+            <output>4</output>
+            <button class="step" data-dir="1">+</button>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3 class="kicker">behaviour</h3>
+        <label class="field toggle-field">
+          <span>Auto-start breaks</span>
+          <input type="checkbox" data-toggle="autoStartBreaks" />
+          <i class="switch"></i>
+        </label>
+        <label class="field toggle-field">
+          <span>Auto-start focus</span>
+          <input type="checkbox" data-toggle="autoStartFocus" />
+          <i class="switch"></i>
+        </label>
+        <label class="field toggle-field">
+          <span>Chime</span>
+          <input type="checkbox" data-toggle="sound" />
+          <i class="switch"></i>
+        </label>
+        <label class="field toggle-field">
+          <span>Notifications</span>
+          <input type="checkbox" data-toggle="notifications" />
+          <i class="switch"></i>
+        </label>
+      </section>
+    </aside>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

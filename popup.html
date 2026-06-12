@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ember</title>
+    <link rel="stylesheet" href="theme.css" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body data-phase="focus" data-status="idle">
+    <main class="popup">
+      <header class="reveal">
+        <span class="kicker" id="session-kicker">session 1 of 4</span>
+        <h1 class="phase-word" id="phase-label">focus</h1>
+      </header>
+
+      <div class="time reveal" style="--d: 0.06s" id="time">25:00</div>
+
+      <div class="bar reveal" style="--d: 0.1s">
+        <div class="bar-fill" id="bar-fill"></div>
+      </div>
+
+      <div class="dots reveal" style="--d: 0.14s" id="dots"></div>
+
+      <div class="controls reveal" style="--d: 0.18s">
+        <button class="btn-primary" id="toggle">Start</button>
+        <button class="btn-ghost" id="reset" title="Reset this phase">Reset</button>
+        <button class="btn-ghost" id="skip" title="Skip to next phase">Skip</button>
+      </div>
+
+      <footer class="reveal" style="--d: 0.24s">
+        <button id="open-app">open full timer&ensp;&#8599;</button>
+      </footer>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

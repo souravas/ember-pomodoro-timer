@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ember popup composition — 1280×800</title>
+    <link rel="stylesheet" href="../../theme.css" />
+    <style>
+      html,
+      body {
+        width: 1280px;
+        height: 800px;
+        overflow: hidden;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        background:
+          radial-gradient(70% 80% at 78% 40%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%),
+          radial-gradient(120% 100% at 50% 120%, var(--bg-sink), transparent 60%),
+          var(--bg);
+      }
+
+      .copy {
+        flex: 1;
+        padding: 0 96px;
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+      }
+      .wordmark {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 28px;
+      }
+      .wordmark i {
+        font-style: normal;
+        color: var(--accent);
+      }
+      h1 {
+        font-family: var(--serif);
+        font-style: italic;
+        font-weight: 400;
+        font-size: 64px;
+        line-height: 1.05;
+        color: var(--ink);
+      }
+      h1 em {
+        color: var(--accent);
+      }
+      .points {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 8px;
+      }
+      .points span {
+        font-family: var(--mono);
+        font-size: 13px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+      }
+      .points b {
+        color: var(--accent);
+        font-weight: 400;
+        margin-right: 10px;
+      }
+
+      .device {
+        width: 470px;
+        padding-right: 110px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+      /* Fake slice of browser toolbar, to show the badge countdown. */
+      .toolbar {
+        width: 340px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 14px;
+        background: var(--bg-raise);
+        border: 1px solid var(--line);
+        border-bottom: none;
+        border-radius: 14px 14px 0 0;
+        padding: 12px 18px;
+      }
+      .toolbar .dots-deco {
+        flex: 1;
+        display: flex;
+        gap: 6px;
+      }
+      .toolbar .dots-deco i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--line);
+      }
+      .ext-icon {
+        position: relative;
+        width: 26px;
+        height: 26px;
+      }
+      .ext-icon img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .badge {
+        position: absolute;
+        right: -10px;
+        bottom: -6px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-family: var(--mono);
+        font-weight: 600;
+        font-size: 10px;
+        padding: 1px 5px;
+        border-radius: 6px;
+      }
+      .popup-frame {
+        width: 302px;
+        height: 318px;
+        border: 1px solid var(--line);
+        border-radius: 0 0 14px 14px;
+        overflow: hidden;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+        background: var(--bg);
+      }
+      .popup-frame iframe {
+        width: 300px;
+        height: 316px;
+        border: none;
+        display: block;
+      }
+      .caption {
+        margin-top: 22px;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        align-self: center;
+        padding-right: 0;
+      }
+    </style>
+  </head>
+  <body data-phase="focus">
+    <div class="copy">
+      <span class="wordmark">Ember<i>.</i></span>
+      <h1>One click from<br />the toolbar, <em>focus.</em></h1>
+      <div class="points">
+        <span><b>—</b>start · pause · skip from the popup</span>
+        <span><b>—</b>badge counts down the minutes</span>
+        <span><b>—</b>no account · no tracking · offline</span>
+      </div>
+    </div>
+
+    <div class="device">
+      <div class="toolbar">
+        <div class="dots-deco"><i></i><i></i><i></i></div>
+        <div class="ext-icon">
+          <img src="../../icons/icon128.png" alt="" />
+          <span class="badge">14m</span>
+        </div>
+      </div>
+      <div class="popup-frame">
+        <iframe src="popup-framed.html?phase=focus&status=running&remain=13.8&cycle=1" scrolling="no"></iframe>
+      </div>
+      <div class="caption">the popup — quick control</div>
+    </div>
+  </body>
+</html>

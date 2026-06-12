@@ -1,0 +1,213 @@
+/* Ember — shared theme. A dim, warm room: espresso dark, cream type,
+   one ember accent that cools to sage / dusk blue on breaks. */
+
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-weight: 400;
+  src: url('fonts/InstrumentSerif-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: italic;
+  font-weight: 400;
+  src: url('fonts/InstrumentSerif-Italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Spline Sans Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: url('fonts/SplineSansMono-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Spline Sans Mono';
+  font-style: normal;
+  font-weight: 500;
+  src: url('fonts/SplineSansMono-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Spline Sans Mono';
+  font-style: normal;
+  font-weight: 600;
+  src: url('fonts/SplineSansMono-600.woff2') format('woff2');
+}
+
+:root {
+  --bg: #171210;
+  --bg-raise: #1f1815;
+  --bg-sink: #120e0c;
+  --line: rgba(239, 229, 214, 0.1);
+  --line-faint: rgba(239, 229, 214, 0.06);
+  --ink: #efe5d6;
+  --ink-dim: rgba(239, 229, 214, 0.58);
+  --ink-faint: rgba(239, 229, 214, 0.34);
+  --accent: #e25c3f;
+  --accent-ink: #1a1310;
+  --serif: 'Instrument Serif', georgia, serif;
+  --mono: 'Spline Sans Mono', ui-monospace, monospace;
+}
+
+[data-phase='shortBreak'] {
+  --accent: #a8bd8f;
+}
+[data-phase='longBreak'] {
+  --accent: #93afc0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Film grain over everything, so flat areas never look sterile. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.phase-word {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+  transition: color 0.6s ease;
+}
+
+/* Buttons */
+.btn-primary {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: 999px;
+  transition:
+    background 0.5s ease,
+    transform 0.15s ease,
+    box-shadow 0.3s ease;
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-ghost {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.btn-ghost:hover {
+  color: var(--ink);
+  border-color: rgba(239, 229, 214, 0.28);
+}
+
+/* Cycle dots */
+.dots {
+  display: flex;
+  gap: 9px;
+  justify-content: center;
+}
+.dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-faint);
+  transition:
+    background 0.4s ease,
+    border-color 0.4s ease;
+}
+.dots i.done {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.dots i.current {
+  border-color: var(--accent);
+}
+[data-status='running'] .dots i.current {
+  animation: dot-breathe 2.4s ease-in-out infinite;
+}
+@keyframes dot-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px transparent;
+  }
+}
+
+/* Progress ring */
+.ring-track {
+  fill: none;
+  stroke: var(--line-faint);
+}
+.ring-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition:
+    stroke-dashoffset 0.25s linear,
+    stroke 0.6s ease;
+}
+
+/* Entrance */
+.reveal {
+  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

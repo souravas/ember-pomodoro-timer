@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ember small promo tile — 440×280</title>
+    <link rel="stylesheet" href="../../theme.css" />
+    <style>
+      html,
+      body {
+        width: 440px;
+        height: 280px;
+        overflow: hidden;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 36px;
+        background:
+          radial-gradient(80% 90% at 70% 30%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+          radial-gradient(120% 100% at 50% 130%, var(--bg-sink), transparent 60%),
+          var(--bg);
+      }
+      .ring-wrap {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent) 35%, transparent));
+      }
+      .ring-inner {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--mono);
+        font-weight: 500;
+        font-size: 30px;
+        font-variant-numeric: tabular-nums;
+      }
+      .name {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .wordmark {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 54px;
+        line-height: 1;
+      }
+      .wordmark i {
+        font-style: normal;
+        color: var(--accent);
+      }
+      .tag {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+      }
+    </style>
+  </head>
+  <body data-phase="focus">
+    <div class="ring-wrap">
+      <svg viewBox="0 0 360 360" width="150" height="150" aria-hidden="true">
+        <circle cx="180" cy="180" r="164" stroke-width="10" fill="none" stroke="rgba(239,229,214,0.08)" />
+        <circle
+          cx="180"
+          cy="180"
+          r="164"
+          stroke-width="10"
+          fill="none"
+          stroke="#e25c3f"
+          stroke-linecap="round"
+          stroke-dasharray="1030.4"
+          stroke-dashoffset="290"
+          transform="rotate(-90 180 180)"
+        />
+      </svg>
+      <div class="ring-inner">17:48</div>
+    </div>
+    <div class="name">
+      <span class="wordmark">Ember<i>.</i></span>
+      <span class="tag">a calm pomodoro<br />timer</span>
+    </div>
+  </body>
+</html>
