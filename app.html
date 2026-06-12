@@ -4,11 +4,22 @@
     <meta charset="utf-8" />
     <title>Ember</title>
     <link rel="icon" href="icons/icon32.png" />
+    <script src="theme-boot.js"></script>
     <link rel="stylesheet" href="theme.css" />
     <link rel="stylesheet" href="app.css" />
   </head>
   <body data-phase="focus" data-status="idle">
     <div class="glow" aria-hidden="true"></div>
+    <!-- Stray sparks that drift up off the page while the timer runs. -->
+    <div class="sparks" aria-hidden="true">
+      <i style="--x: 12%; --t: 13s; --d: 0s; --o: 0.5; --sw: 34px"></i>
+      <i style="--x: 26%; --t: 17s; --d: 4.2s; --o: 0.3; --sw: -22px"></i>
+      <i style="--x: 38%; --t: 11s; --d: 7.5s; --o: 0.45; --sw: 18px"></i>
+      <i style="--x: 52%; --t: 15s; --d: 2.4s; --o: 0.35; --sw: -30px"></i>
+      <i style="--x: 64%; --t: 12s; --d: 9s; --o: 0.5; --sw: 26px"></i>
+      <i style="--x: 76%; --t: 16s; --d: 5.6s; --o: 0.3; --sw: -18px"></i>
+      <i style="--x: 88%; --t: 14s; --d: 1.2s; --o: 0.4; --sw: 30px"></i>
+    </div>
 
     <header class="topbar reveal">
       <span class="wordmark">Ember<span class="wordmark-dot">.</span></span>
@@ -26,6 +37,9 @@
         <svg class="ring" viewBox="0 0 360 360" aria-hidden="true">
           <circle class="ring-track" cx="180" cy="180" r="164" stroke-width="5" />
           <circle class="ring-progress" id="ring" cx="180" cy="180" r="164" stroke-width="5" />
+          <g class="ring-tip" id="tip">
+            <circle cx="180" cy="16" r="4.5" />
+          </g>
         </svg>
         <div class="ring-inner">
           <div class="time" id="time">25:00</div>
@@ -116,6 +130,11 @@
           <input type="checkbox" data-toggle="notifications" />
           <i class="switch"></i>
         </label>
+      </section>
+
+      <section>
+        <h3 class="kicker">theme · <span id="theme-name">ember</span></h3>
+        <div class="themes" id="themes"></div>
       </section>
     </aside>
 

@@ -105,6 +105,59 @@ export function bindDurationFields(getSettings, onUpdate) {
   };
 }
 
+// Theme list for the pickers. Colors live in theme.css — each swatch carries
+// data-theme and lets the cascade paint it with that theme's own tokens.
+export const THEMES = [
+  { id: 'ember', label: 'Ember' },
+  { id: 'light', label: 'Light' },
+  { id: 'dark', label: 'Dark' },
+  { id: 'amoled', label: 'AMOLED' },
+  { id: 'rose', label: 'Rosé Pine' },
+  { id: 'dracula', label: 'Dracula' },
+  { id: 'nord', label: 'Nord' },
+  { id: 'catppuccin', label: 'Catppuccin' },
+];
+
+// The attribute lives on <html> so theme-boot.js can set it before first
+// paint; localStorage mirrors the setting for that same early read.
+export function applyTheme(theme) {
+  if (document.documentElement.dataset.theme === theme) return;
+  document.documentElement.dataset.theme = theme;
+  try {
+    localStorage.setItem('ember-theme', theme);
+  } catch {
+    // Mirror only — the popup just falls back to the default until state loads.
+  }
+}
+
+// Builds swatch buttons into #themes (when the page has one) and returns a
+// renderer that marks the active swatch and names it in #theme-name.
+export function bindThemePicker(onUpdate) {
+  const wrap = document.getElementById('themes');
+  if (!wrap) return () => {};
+  for (const t of THEMES) {
+    const btn = document.createElement('button');
+    btn.className = 'swatch';
+    btn.dataset.theme = t.id;
+    btn.title = t.label;
+    btn.setAttribute('aria-label', `${t.label} theme`);
+    btn.addEventListener('click', async () => {
+      onUpdate(await send('updateSettings', { settings: { theme: t.id } }));
+    });
+    wrap.append(btn);
+  }
+  const name = document.getElementById('theme-name');
+  return (state) => {
+    for (const btn of wrap.children) {
+      btn.classList.toggle('active', btn.dataset.theme === state.settings.theme);
+    }
+    if (name) {
+      const active = THEMES.find((t) => t.id === state.settings.theme);
+      name.textContent = (active?.label ?? state.settings.theme).toLowerCase();
+    }
+  };
+}
+
 export function renderDots(container, state) {
   const total = state.settings.longBreakEvery;
   const done = state.cyclePos;

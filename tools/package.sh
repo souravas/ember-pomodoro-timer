@@ -11,7 +11,7 @@ FILES = [
     "background.js", "offscreen.html", "offscreen.js",
     "popup.html", "popup.css", "popup.js",
     "app.html", "app.css", "app.js",
-    "theme.css", "ui.js",
+    "theme.css", "theme-boot.js", "ui.js",
 ]
 DIRS = ["core", "fonts", "icons"]
 

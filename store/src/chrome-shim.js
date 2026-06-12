@@ -2,9 +2,14 @@
 // browser tab for store screenshots. State is preset via URL params:
 //   ?phase=focus|shortBreak|longBreak  &status=idle|running|paused
 //   &remain=<minutes>  &cycle=<n>  &sessions=<n>  &minutes=<n>  &panel=1
+//   &theme=ember|light|dark|amoled|rose|dracula|nord|catppuccin
 (() => {
   const q = new URLSearchParams(location.search);
   const num = (key, fallback) => (q.has(key) ? Number(q.get(key)) : fallback);
+
+  // What theme-boot.js does in the extension: land the theme before first
+  // paint so shots don't catch the colors mid-transition.
+  if (q.has('theme')) document.documentElement.dataset.theme = q.get('theme');
 
   const settings = {
     focusMin: 25,
@@ -15,6 +20,7 @@
     autoStartFocus: false,
     sound: true,
     notifications: true,
+    theme: q.get('theme') ?? 'ember',
   };
 
   const status = q.get('status') ?? 'running';

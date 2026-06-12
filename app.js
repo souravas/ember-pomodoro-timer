@@ -6,8 +6,10 @@ import {
   todayKey,
 } from './core/timer.js';
 import {
+  applyTheme,
   bindDurationFields,
   bindExtendButtons,
+  bindThemePicker,
   createTicker,
   extendVisible,
   getState,
@@ -25,17 +27,32 @@ let state = null;
 
 $('ring').style.strokeDasharray = RING_CIRCUMFERENCE;
 
+let lastPhase = null;
+
+// One bright pulse of the ring when a phase hands over to the next.
+function flare() {
+  const ring = document.querySelector('.ring');
+  ring.classList.remove('flare');
+  void ring.getBoundingClientRect(); // restart the animation
+  ring.classList.add('flare');
+}
+
 function render(next) {
   state = next;
   if (dialing) return; // the dial owns the display until the drag ends
+  applyTheme(state.settings.theme);
   document.body.dataset.phase = state.phase;
   document.body.dataset.status = state.status;
+  if (lastPhase && lastPhase !== state.phase) flare();
+  lastPhase = state.phase;
 
   const ms = remainingMs(state);
   const time = formatTime(ms);
+  document.body.classList.toggle('ending', state.status === 'running' && ms <= 60_000);
   $('time').textContent = time;
   $('phase-label').textContent = PHASE_LABEL[state.phase];
   $('ring').style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - remainingFraction(state));
+  $('tip').style.setProperty('--frac', remainingFraction(state));
   $('toggle').textContent = state.status === 'running' ? 'Pause' : 'Start';
   $('status-hint').textContent = {
     idle: 'press space · drag ring to set',
@@ -112,9 +129,11 @@ $('close-settings').addEventListener('click', () => setPanel(false));
 $('scrim').addEventListener('click', () => setPanel(false));
 
 const renderDurations = bindDurationFields(() => state.settings, update);
+const renderTheme = bindThemePicker(update);
 
 function renderSettings() {
   renderDurations(state);
+  renderTheme(state);
   for (const input of settingToggles) {
     input.checked = state.settings[input.dataset.toggle];
   }
@@ -160,6 +179,7 @@ function setDial(e) {
   const { max } = DIAL[state.phase];
   dialMin = Math.min(max, Math.max(1, Math.round(turn * max)));
   $('ring').style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - dialMin / max);
+  $('tip').style.setProperty('--frac', dialMin / max);
   $('time').textContent = formatTime(dialMin * 60_000);
   $('status-hint').textContent = 'release to set';
 }

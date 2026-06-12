@@ -33,6 +33,9 @@ header {
   line-height: 1;
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
+  transition:
+    color 0.8s ease,
+    text-shadow 0.8s ease;
 }
 
 .bar {
@@ -40,15 +43,44 @@ header {
   height: 3px;
   border-radius: 2px;
   background: var(--line-faint);
-  overflow: hidden;
 }
 .bar-fill {
+  position: relative;
   height: 100%;
   border-radius: 2px;
   background: var(--accent);
   transition:
     width 0.25s linear,
-    background 0.6s ease;
+    background 0.6s ease,
+    opacity 0.6s ease;
+}
+/* The burning tip of the fuse. */
+.bar-fill::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  transition:
+    background 0.6s ease,
+    box-shadow 0.6s ease;
+}
+
+/* Paused reads as banked coals; the final minute catches. */
+[data-status='paused'] .time {
+  color: var(--ink-dim);
+}
+[data-status='paused'] .bar-fill {
+  opacity: 0.55;
+}
+.ending .time {
+  color: var(--accent);
+  text-shadow: 0 0 22px color-mix(in srgb, var(--accent) 38%, transparent);
 }
 
 /* The flipped view and the extend row are display:flex, which would
@@ -102,4 +134,21 @@ footer button:hover {
 }
 #settings-view footer {
   margin-top: 2px;
+}
+
+.theme-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+.theme-block .themes {
+  justify-content: center;
+  gap: 8px;
+}
+/* Slightly smaller than in the app so all eight fit one row at 300px. */
+.theme-block .swatch {
+  width: 24px;
+  height: 24px;
 }

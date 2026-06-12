@@ -1,7 +1,9 @@
 import { PHASE_LABEL, formatTime, remainingFraction, remainingMs } from './core/timer.js';
 import {
+  applyTheme,
   bindDurationFields,
   bindExtendButtons,
+  bindThemePicker,
   createTicker,
   extendVisible,
   getState,
@@ -16,11 +18,14 @@ let state = null;
 
 function render(next) {
   state = next;
+  applyTheme(state.settings.theme);
   document.body.dataset.phase = state.phase;
   document.body.dataset.status = state.status;
 
+  const ms = remainingMs(state);
+  document.body.classList.toggle('ending', state.status === 'running' && ms <= 60_000);
   $('phase-label').textContent = PHASE_LABEL[state.phase];
-  $('time').textContent = formatTime(remainingMs(state));
+  $('time').textContent = formatTime(ms);
   $('bar-fill').style.width = `${remainingFraction(state) * 100}%`;
   $('toggle').textContent = state.status === 'running' ? 'Pause' : 'Start';
   $('session-kicker').textContent =
@@ -37,10 +42,14 @@ const sync = createTicker(render);
 // only move the countdown.
 function update(next) {
   sync(next);
-  if (state) renderDurations(state);
+  if (state) {
+    renderDurations(state);
+    renderTheme(state);
+  }
 }
 
 const renderDurations = bindDurationFields(() => state.settings, update);
+const renderTheme = bindThemePicker(update);
 bindExtendButtons(sync);
 
 $('toggle').addEventListener('click', async () => {

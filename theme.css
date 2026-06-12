@@ -1,5 +1,7 @@
-/* Ember — shared theme. A dim, warm room: espresso dark, cream type,
-   one ember accent that cools to sage / dusk blue on breaks. */
+/* Ember — shared theme. The default is a dim, warm room: espresso dark,
+   cream type, one ember accent that cools on breaks. Every theme is a token
+   block on [data-theme]; the rest of the CSS only ever reads tokens, so a
+   theme swap is one attribute on <html>. */
 
 @font-face {
   font-family: 'Instrument Serif';
@@ -33,25 +35,179 @@
 }
 
 :root {
+  --serif: 'Instrument Serif', georgia, serif;
+  --mono: 'Spline Sans Mono', ui-monospace, monospace;
+  --accent: var(--accent-focus);
+  /* Native UI (scrollbars, form controls) follows the room's lightness. */
+  color-scheme: dark;
+}
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+/* Each theme defines the same token set. The bare :root copy of Ember keeps
+   anything without a data-theme (offscreen page, store mockups) on the
+   default look. The selectors are unscoped on purpose: a theme-picker swatch
+   carries its own data-theme and inherits that theme's tokens locally. */
+
+/* Ember — espresso dark, the original. */
+:root,
+[data-theme='ember'] {
   --bg: #171210;
   --bg-raise: #1f1815;
   --bg-sink: #120e0c;
   --line: rgba(239, 229, 214, 0.1);
   --line-faint: rgba(239, 229, 214, 0.06);
+  --line-strong: rgba(239, 229, 214, 0.28);
   --ink: #efe5d6;
   --ink-dim: rgba(239, 229, 214, 0.58);
   --ink-faint: rgba(239, 229, 214, 0.34);
-  --accent: #e25c3f;
+  --accent-focus: #e25c3f;
+  --accent-short: #a8bd8f;
+  --accent-long: #93afc0;
   --accent-ink: #1a1310;
-  --serif: 'Instrument Serif', georgia, serif;
-  --mono: 'Spline Sans Mono', ui-monospace, monospace;
+  --scrim: rgba(10, 7, 6, 0.55);
+  --grain: 0.045;
+}
+
+/* Light — warm paper, same ember family deepened for contrast. */
+[data-theme='light'] {
+  --bg: #f4eee2;
+  --bg-raise: #faf6ec;
+  --bg-sink: #e9e1d1;
+  --line: rgba(44, 34, 28, 0.14);
+  --line-faint: rgba(44, 34, 28, 0.08);
+  --line-strong: rgba(44, 34, 28, 0.32);
+  --ink: #2c221c;
+  --ink-dim: rgba(44, 34, 28, 0.62);
+  --ink-faint: rgba(44, 34, 28, 0.4);
+  --accent-focus: #c0452a;
+  --accent-short: #5f7d49;
+  --accent-long: #42708f;
+  --accent-ink: #f8f3e8;
+  --scrim: rgba(44, 34, 28, 0.3);
+  --grain: 0.035;
+}
+
+/* Dark — neutral graphite, monochrome: moonlight instead of firelight. */
+[data-theme='dark'] {
+  --bg: #141519;
+  --bg-raise: #1b1d22;
+  --bg-sink: #0e0f12;
+  --line: rgba(231, 233, 238, 0.1);
+  --line-faint: rgba(231, 233, 238, 0.06);
+  --line-strong: rgba(231, 233, 238, 0.28);
+  --ink: #e7e9ee;
+  --ink-dim: rgba(231, 233, 238, 0.58);
+  --ink-faint: rgba(231, 233, 238, 0.34);
+  --accent-focus: #eef1f6;
+  --accent-short: #b9c2ce;
+  --accent-long: #8b97a6;
+  --accent-ink: #15161a;
+  --scrim: rgba(5, 6, 8, 0.55);
+  --grain: 0.045;
+}
+
+/* AMOLED — Ember's palette on true black. */
+[data-theme='amoled'] {
+  --bg: #000000;
+  --bg-raise: #0d0b0a;
+  --bg-sink: #000000;
+  --line: rgba(239, 229, 214, 0.12);
+  --line-faint: rgba(239, 229, 214, 0.07);
+  --line-strong: rgba(239, 229, 214, 0.3);
+  --ink: #efe5d6;
+  --ink-dim: rgba(239, 229, 214, 0.58);
+  --ink-faint: rgba(239, 229, 214, 0.34);
+  --accent-focus: #ff6b4a;
+  --accent-short: #b1c897;
+  --accent-long: #9cb9cb;
+  --accent-ink: #140d0a;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --grain: 0.04;
+}
+
+/* Rosé Pine — muted plum dusk, rose accent. */
+[data-theme='rose'] {
+  --bg: #191724;
+  --bg-raise: #1f1d2e;
+  --bg-sink: #13111c;
+  --line: rgba(224, 222, 244, 0.1);
+  --line-faint: rgba(224, 222, 244, 0.06);
+  --line-strong: rgba(224, 222, 244, 0.28);
+  --ink: #e0def4;
+  --ink-dim: rgba(224, 222, 244, 0.6);
+  --ink-faint: rgba(224, 222, 244, 0.36);
+  --accent-focus: #eb6f92;
+  --accent-short: #9ccfd8;
+  --accent-long: #c4a7e7;
+  --accent-ink: #191724;
+  --scrim: rgba(9, 8, 14, 0.55);
+  --grain: 0.045;
+}
+
+/* Dracula — the classic. */
+[data-theme='dracula'] {
+  --bg: #282a36;
+  --bg-raise: #313445;
+  --bg-sink: #1e2029;
+  --line: rgba(248, 248, 242, 0.12);
+  --line-faint: rgba(248, 248, 242, 0.07);
+  --line-strong: rgba(248, 248, 242, 0.3);
+  --ink: #f8f8f2;
+  --ink-dim: rgba(248, 248, 242, 0.6);
+  --ink-faint: rgba(248, 248, 242, 0.36);
+  --accent-focus: #bd93f9;
+  --accent-short: #50fa7b;
+  --accent-long: #8be9fd;
+  --accent-ink: #282a36;
+  --scrim: rgba(15, 16, 21, 0.55);
+  --grain: 0.045;
+}
+
+/* Nord — arctic blue-grey. */
+[data-theme='nord'] {
+  --bg: #2e3440;
+  --bg-raise: #3b4252;
+  --bg-sink: #272c36;
+  --line: rgba(236, 239, 244, 0.12);
+  --line-faint: rgba(236, 239, 244, 0.07);
+  --line-strong: rgba(236, 239, 244, 0.3);
+  --ink: #eceff4;
+  --ink-dim: rgba(236, 239, 244, 0.6);
+  --ink-faint: rgba(236, 239, 244, 0.36);
+  --accent-focus: #88c0d0;
+  --accent-short: #a3be8c;
+  --accent-long: #81a1c1;
+  --accent-ink: #2e3440;
+  --scrim: rgba(18, 21, 27, 0.55);
+  --grain: 0.045;
+}
+
+/* Catppuccin Mocha — soft pastels on deep indigo. */
+[data-theme='catppuccin'] {
+  --bg: #1e1e2e;
+  --bg-raise: #27273a;
+  --bg-sink: #181825;
+  --line: rgba(205, 214, 244, 0.1);
+  --line-faint: rgba(205, 214, 244, 0.06);
+  --line-strong: rgba(205, 214, 244, 0.28);
+  --ink: #cdd6f4;
+  --ink-dim: rgba(205, 214, 244, 0.6);
+  --ink-faint: rgba(205, 214, 244, 0.36);
+  --accent-focus: #fab387;
+  --accent-short: #a6e3a1;
+  --accent-long: #89b4fa;
+  --accent-ink: #1e1e2e;
+  --scrim: rgba(12, 12, 20, 0.55);
+  --grain: 0.045;
 }
 
 [data-phase='shortBreak'] {
-  --accent: #a8bd8f;
+  --accent: var(--accent-short);
 }
 [data-phase='longBreak'] {
-  --accent: #93afc0;
+  --accent: var(--accent-long);
 }
 
 * {
@@ -75,7 +231,7 @@ body::after {
   inset: 0;
   pointer-events: none;
   z-index: 50;
-  opacity: 0.045;
+  opacity: var(--grain);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -142,7 +298,7 @@ button {
 }
 .btn-ghost:hover {
   color: var(--ink);
-  border-color: rgba(239, 229, 214, 0.28);
+  border-color: var(--line-strong);
 }
 
 /* Cycle dots */
@@ -237,6 +393,53 @@ button {
   transition:
     stroke-dashoffset 0.25s linear,
     stroke 0.6s ease;
+}
+
+/* Decorative motion is a flourish, not information — honour the OS switch. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Theme picker — shared by the app's slide-over and the popup. Each swatch
+   carries data-theme, so its tokens resolve to the theme it represents:
+   the circle is that theme's room, the dot its focus accent. */
+.themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--bg);
+  /* Neutral hairline that reads on every page background. */
+  border: 1px solid rgba(136, 128, 120, 0.4);
+  display: grid;
+  place-items: center;
+  transition:
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+.swatch::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-focus);
+}
+.swatch:hover {
+  transform: translateY(-1px);
+}
+.swatch.active {
+  border-color: var(--accent-focus);
+  box-shadow: 0 0 0 1px var(--accent-focus);
 }
 
 /* Entrance */

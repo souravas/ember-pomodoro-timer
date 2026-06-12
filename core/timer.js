@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS = {
   autoStartFocus: false,
   sound: true,
   notifications: true,
+  theme: 'ember',
 };
 
 export const PHASE_LABEL = {
