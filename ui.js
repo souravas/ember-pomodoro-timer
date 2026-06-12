@@ -14,6 +14,12 @@ export function send(type, extra = {}) {
   return chrome.runtime.sendMessage({ type, ...extra });
 }
 
+// Write only on change: skips text-node churn on every tick and keeps
+// aria-live regions from re-announcing values that didn't move.
+export function setText(el, value) {
+  if (el.textContent !== value) el.textContent = value;
+}
+
 export function onStateChange(cb) {
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && changes.state) cb(changes.state.newValue);
@@ -70,6 +76,7 @@ export function bindExtendButtons(onUpdate) {
 export function bindDurationFields(getSettings, onUpdate) {
   const fields = [...document.querySelectorAll('.field[data-setting]')].map((field) => ({
     key: field.dataset.setting,
+    label: field.querySelector('span')?.textContent ?? field.dataset.setting,
     min: Number(field.dataset.min),
     max: Number(field.dataset.max),
     input: field.querySelector('.value'),
@@ -83,8 +90,11 @@ export function bindDurationFields(getSettings, onUpdate) {
   }
 
   for (const f of fields) {
+    f.input.setAttribute('aria-label', f.label);
     for (const btn of f.steps) {
-      btn.addEventListener('click', () => save(f, getSettings()[f.key] + Number(btn.dataset.dir)));
+      const dir = Number(btn.dataset.dir);
+      btn.setAttribute('aria-label', `${dir < 0 ? 'Decrease' : 'Increase'} ${f.label}`);
+      btn.addEventListener('click', () => save(f, getSettings()[f.key] + dir));
     }
     f.input.addEventListener('focus', () => f.input.select());
     f.input.addEventListener('keydown', (e) => {
@@ -149,7 +159,9 @@ export function bindThemePicker(onUpdate) {
   const name = document.getElementById('theme-name');
   return (state) => {
     for (const btn of wrap.children) {
-      btn.classList.toggle('active', btn.dataset.theme === state.settings.theme);
+      const active = btn.dataset.theme === state.settings.theme;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', String(active));
     }
     if (name) {
       const active = THEMES.find((t) => t.id === state.settings.theme);

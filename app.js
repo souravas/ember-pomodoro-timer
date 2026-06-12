@@ -16,6 +16,7 @@ import {
   onStateChange,
   renderDots,
   send,
+  setText,
 } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
@@ -49,21 +50,26 @@ function render(next) {
   const ms = remainingMs(state);
   const time = formatTime(ms);
   document.body.classList.toggle('ending', state.status === 'running' && ms <= 60_000);
-  $('time').textContent = time;
-  $('phase-label').textContent = PHASE_LABEL[state.phase];
+  setText($('time'), time);
+  setText($('phase-label'), PHASE_LABEL[state.phase]);
   $('ring').style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - remainingFraction(state));
   $('tip').style.setProperty('--frac', remainingFraction(state));
-  $('toggle').textContent = state.status === 'running' ? 'Pause' : 'Start';
-  $('status-hint').textContent = {
-    idle: 'press space · drag ring to set',
-    running: '',
-    paused: 'paused',
-  }[state.status];
+  setText($('toggle'), state.status === 'running' ? 'Pause' : 'Start');
+  setText(
+    $('status-hint'),
+    {
+      idle: 'press space · drag ring to set',
+      running: '',
+      paused: 'paused',
+    }[state.status]
+  );
   $('extend').classList.toggle('show', extendVisible(state));
-  $('session-kicker').textContent =
+  setText(
+    $('session-kicker'),
     state.phase === 'focus'
       ? `session ${Math.min(state.cyclePos + 1, state.settings.longBreakEvery)} of ${state.settings.longBreakEvery}`
-      : 'take a breath';
+      : 'take a breath'
+  );
   renderDots($('dots'), state);
 
   document.title =
@@ -119,9 +125,28 @@ function panelOpen() {
 
 function setPanel(open) {
   $('panel').classList.toggle('open', open);
-  $('scrim').hidden = !open;
-  // Allow the scrim's opacity transition to play.
-  requestAnimationFrame(() => $('scrim').classList.toggle('open', open));
+  const scrim = $('scrim');
+  if (open) {
+    scrim.hidden = false;
+    // Let the unhide land before the fade starts, or the transition is skipped.
+    requestAnimationFrame(() => {
+      if (panelOpen()) scrim.classList.add('open');
+    });
+  } else {
+    scrim.classList.remove('open');
+    // Hide only after the fade-out plays — unless the panel reopened meanwhile.
+    scrim.addEventListener(
+      'transitionend',
+      () => {
+        if (!panelOpen()) scrim.hidden = true;
+      },
+      { once: true }
+    );
+  }
+  // Hand keyboard focus across the threshold; :focus-visible keeps the
+  // ring invisible for mouse users.
+  if (open) $('close-settings').focus();
+  else if ($('panel').contains(document.activeElement)) $('open-settings').focus();
 }
 
 $('open-settings').addEventListener('click', () => setPanel(true));

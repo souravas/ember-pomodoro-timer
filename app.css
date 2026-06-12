@@ -22,12 +22,13 @@ body {
   height: 640px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
+  /* The gradient is its own blur — a filter here would cost GPU raster
+     time on every breathe cycle for no visible gain. */
   background: radial-gradient(
     circle,
     color-mix(in srgb, var(--accent) 10%, transparent),
-    transparent 65%
+    transparent 70%
   );
-  filter: blur(40px);
   pointer-events: none;
   transition:
     background 0.8s ease,
@@ -271,12 +272,17 @@ body {
   justify-content: center;
   gap: 10px;
   opacity: 0;
+  visibility: hidden; /* not tabbable while invisible */
   pointer-events: none;
-  transition: opacity 0.5s ease;
+  transition:
+    opacity 0.5s ease,
+    visibility 0s 0.5s;
 }
 .ring-inner .extend.show {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
+  transition: opacity 0.5s ease;
 }
 .ring-inner .extend .btn-ghost {
   padding: 8px 16px;
@@ -331,10 +337,19 @@ footer {
   gap: 28px;
   overflow-y: auto;
   transform: translateX(102%);
-  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* visibility keeps the closed panel's controls out of the tab order;
+     its 0s transition is delayed so the slide-out finishes first. */
+  visibility: hidden;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+    visibility 0s 0.35s;
 }
 .panel.open {
   transform: translateX(0);
+  visibility: visible;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+    visibility 0s;
 }
 
 .panel-head {
@@ -360,9 +375,19 @@ footer {
 
 .toggle-field {
   cursor: pointer;
+  position: relative;
 }
+/* Visually hidden, not display:none — keeps the checkbox keyboard-reachable. */
 .toggle-field input {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.toggle-field input:focus-visible + .switch {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 .switch {
   width: 36px;

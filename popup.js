@@ -10,6 +10,7 @@ import {
   onStateChange,
   renderDots,
   send,
+  setText,
 } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
@@ -24,14 +25,16 @@ function render(next) {
 
   const ms = remainingMs(state);
   document.body.classList.toggle('ending', state.status === 'running' && ms <= 60_000);
-  $('phase-label').textContent = PHASE_LABEL[state.phase];
-  $('time').textContent = formatTime(ms);
+  setText($('phase-label'), PHASE_LABEL[state.phase]);
+  setText($('time'), formatTime(ms));
   $('bar-fill').style.width = `${remainingFraction(state) * 100}%`;
-  $('toggle').textContent = state.status === 'running' ? 'Pause' : 'Start';
-  $('session-kicker').textContent =
+  setText($('toggle'), state.status === 'running' ? 'Pause' : 'Start');
+  setText(
+    $('session-kicker'),
     state.phase === 'focus'
       ? `session ${Math.min(state.cyclePos + 1, state.settings.longBreakEvery)} of ${state.settings.longBreakEvery}`
-      : 'take a breath';
+      : 'take a breath'
+  );
   renderDots($('dots'), state);
   $('extend').hidden = !extendVisible(state);
 }

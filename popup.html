@@ -11,16 +11,16 @@
     <main class="popup" id="timer-view">
       <header class="reveal">
         <span class="kicker" id="session-kicker">session 1 of 4</span>
-        <h1 class="phase-word" id="phase-label">focus</h1>
+        <h1 class="phase-word" id="phase-label" aria-live="polite">focus</h1>
       </header>
 
       <div class="time reveal" style="--d: 0.06s" id="time">25:00</div>
 
-      <div class="bar reveal" style="--d: 0.1s">
+      <div class="bar reveal" style="--d: 0.1s" aria-hidden="true">
         <div class="bar-fill" id="bar-fill"></div>
       </div>
 
-      <div class="dots reveal" style="--d: 0.14s" id="dots"></div>
+      <div class="dots reveal" style="--d: 0.14s" id="dots" aria-hidden="true"></div>
 
       <div class="controls reveal" style="--d: 0.18s">
         <button class="btn-primary" id="toggle">Start</button>
