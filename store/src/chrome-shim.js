@@ -43,7 +43,18 @@
       onChanged: { addListener() {} },
     },
     runtime: {
-      sendMessage: async () => state,
+      // Honour updateSettings so steppers / typed values / the ring dial
+      // respond when the real UI scripts run against this shim.
+      sendMessage: async (msg) => {
+        if (msg && msg.type === 'updateSettings') {
+          // Mutate state.settings (not `settings`): ui.js getState() swaps in
+          // its own merged copy, and that copy is what the views read.
+          Object.assign(state.settings, msg.settings);
+          const minKey = { focus: 'focusMin', shortBreak: 'shortBreakMin', longBreak: 'longBreakMin' };
+          if (state.status === 'idle') state.remainingMs = state.settings[minKey[state.phase]] * 60_000;
+        }
+        return state;
+      },
       getURL: (p) => p,
     },
     tabs: { create() {} },

@@ -33,6 +33,7 @@ export function defaultState() {
     status: 'idle', // idle | running | paused
     endsAt: null, // epoch ms, set while running
     remainingMs: DEFAULT_SETTINGS.focusMin * 60_000,
+    extendedMs: 0, // mid-session "+5 min" extensions; cleared when the phase ends
     cyclePos: 0, // focus sessions completed since the last long break
     settings: { ...DEFAULT_SETTINGS },
   };
@@ -50,10 +51,15 @@ export function remainingMs(state, now = Date.now()) {
   return state.remainingMs;
 }
 
+// Full length of the current phase, including any mid-session extensions.
+// (`?? 0` covers states stored before extensions existed.)
+export function phaseTotalMs(state) {
+  return phaseDurationMs(state.phase, state.settings) + (state.extendedMs ?? 0);
+}
+
 // Fraction of the current phase still left, 0..1. Drives the progress ring.
 export function remainingFraction(state, now = Date.now()) {
-  const total = phaseDurationMs(state.phase, state.settings);
-  return Math.min(1, Math.max(0, remainingMs(state, now) / total));
+  return Math.min(1, Math.max(0, remainingMs(state, now) / phaseTotalMs(state)));
 }
 
 export function formatTime(ms) {

@@ -1,5 +1,14 @@
 import { PHASE_LABEL, formatTime, remainingFraction, remainingMs } from './core/timer.js';
-import { createTicker, getState, onStateChange, renderDots, send } from './ui.js';
+import {
+  bindDurationFields,
+  bindExtendButtons,
+  createTicker,
+  extendVisible,
+  getState,
+  onStateChange,
+  renderDots,
+  send,
+} from './ui.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -19,9 +28,20 @@ function render(next) {
       ? `session ${Math.min(state.cyclePos + 1, state.settings.longBreakEvery)} of ${state.settings.longBreakEvery}`
       : 'take a breath';
   renderDots($('dots'), state);
+  $('extend').hidden = !extendVisible(state);
 }
 
 const sync = createTicker(render);
+
+// State changes may also need the settings view repainted; ticker re-renders
+// only move the countdown.
+function update(next) {
+  sync(next);
+  if (state) renderDurations(state);
+}
+
+const renderDurations = bindDurationFields(() => state.settings, update);
+bindExtendButtons(sync);
 
 $('toggle').addEventListener('click', async () => {
   if (!state) return;
@@ -37,5 +57,15 @@ $('open-app').addEventListener('click', () => {
   chrome.tabs.create({ url: chrome.runtime.getURL('app.html') });
 });
 
-onStateChange(sync);
-getState().then(sync);
+/* ---------- settings flip-view ---------- */
+
+function setView(showSettings) {
+  $('timer-view').hidden = showSettings;
+  $('settings-view').hidden = !showSettings;
+}
+
+$('open-settings').addEventListener('click', () => setView(true));
+$('close-settings').addEventListener('click', () => setView(false));
+
+onStateChange(update);
+getState().then(update);

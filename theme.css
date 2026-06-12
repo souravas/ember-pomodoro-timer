@@ -180,6 +180,49 @@ button {
   }
 }
 
+/* Settings fields — shared by the app's slide-over and the popup. */
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line-faint);
+  color: var(--ink-dim);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.stepper .value {
+  width: 42px;
+  text-align: center;
+  font: inherit;
+  font-weight: 500;
+  color: var(--ink);
+  background: none;
+  border: none;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+.stepper .value:focus {
+  color: var(--accent);
+}
+.step {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--ink-faint);
+  font-size: 15px;
+  transition: color 0.15s ease;
+}
+.step:hover {
+  color: var(--accent);
+}
+
 /* Progress ring */
 .ring-track {
   fill: none;

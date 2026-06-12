@@ -5,17 +5,20 @@ import {
   remainingMs,
   todayKey,
 } from './core/timer.js';
-import { createTicker, getState, onStateChange, renderDots, send } from './ui.js';
+import {
+  bindDurationFields,
+  bindExtendButtons,
+  createTicker,
+  extendVisible,
+  getState,
+  onStateChange,
+  renderDots,
+  send,
+} from './ui.js';
 
 const $ = (id) => document.getElementById(id);
 const RING_CIRCUMFERENCE = 2 * Math.PI * 164;
 
-// The settings controls never change shape, so query them once.
-const settingFields = [...document.querySelectorAll('.field[data-setting]')].map((field) => ({
-  field,
-  key: field.dataset.setting,
-  output: field.querySelector('output'),
-}));
 const settingToggles = [...document.querySelectorAll('input[data-toggle]')];
 
 let state = null;
@@ -24,6 +27,7 @@ $('ring').style.strokeDasharray = RING_CIRCUMFERENCE;
 
 function render(next) {
   state = next;
+  if (dialing) return; // the dial owns the display until the drag ends
   document.body.dataset.phase = state.phase;
   document.body.dataset.status = state.status;
 
@@ -34,10 +38,11 @@ function render(next) {
   $('ring').style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - remainingFraction(state));
   $('toggle').textContent = state.status === 'running' ? 'Pause' : 'Start';
   $('status-hint').textContent = {
-    idle: 'press space to begin',
+    idle: 'press space · drag ring to set',
     running: '',
     paused: 'paused',
   }[state.status];
+  $('extend').classList.toggle('show', extendVisible(state));
   $('session-kicker').textContent =
     state.phase === 'focus'
       ? `session ${Math.min(state.cyclePos + 1, state.settings.longBreakEvery)} of ${state.settings.longBreakEvery}`
@@ -106,25 +111,13 @@ $('open-settings').addEventListener('click', () => setPanel(true));
 $('close-settings').addEventListener('click', () => setPanel(false));
 $('scrim').addEventListener('click', () => setPanel(false));
 
+const renderDurations = bindDurationFields(() => state.settings, update);
+
 function renderSettings() {
-  for (const { key, output } of settingFields) {
-    output.textContent = state.settings[key];
-  }
+  renderDurations(state);
   for (const input of settingToggles) {
     input.checked = state.settings[input.dataset.toggle];
   }
-}
-
-for (const { field, key } of settingFields) {
-  field.querySelectorAll('.step').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const next = Math.min(
-        Number(field.dataset.max),
-        Math.max(Number(field.dataset.min), state.settings[key] + Number(btn.dataset.dir))
-      );
-      update(await send('updateSettings', { settings: { [key]: next } }));
-    });
-  });
 }
 
 for (const input of settingToggles) {
@@ -136,6 +129,76 @@ for (const input of settingToggles) {
     );
   });
 }
+
+/* ---------- ring dial: drag to set the idle phase's length ---------- */
+
+// While dragging, the ring re-scales from "fraction remaining" to an
+// absolute clock face: a full circle is the phase's max minutes.
+const DIAL = {
+  focus: { key: 'focusMin', max: 90 },
+  shortBreak: { key: 'shortBreakMin', max: 60 },
+  longBreak: { key: 'longBreakMin', max: 90 },
+};
+
+const ringWrap = document.querySelector('.ring-wrap');
+let dialing = false;
+let dialMin = 0;
+
+function dialDelta(e) {
+  const rect = ringWrap.getBoundingClientRect();
+  return {
+    dx: e.clientX - (rect.left + rect.width / 2),
+    dy: e.clientY - (rect.top + rect.height / 2),
+    radius: rect.width / 2,
+  };
+}
+
+function setDial(e) {
+  const { dx, dy } = dialDelta(e);
+  // Fraction of a turn from 12 o'clock, clockwise.
+  const turn = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
+  const { max } = DIAL[state.phase];
+  dialMin = Math.min(max, Math.max(1, Math.round(turn * max)));
+  $('ring').style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - dialMin / max);
+  $('time').textContent = formatTime(dialMin * 60_000);
+  $('status-hint').textContent = 'release to set';
+}
+
+ringWrap.addEventListener('pointerdown', (e) => {
+  if (!state || state.status !== 'idle') return;
+  const { dx, dy, radius } = dialDelta(e);
+  if (Math.hypot(dx, dy) < radius * 0.25) return; // dead zone at the hub
+  e.preventDefault();
+  ringWrap.setPointerCapture(e.pointerId);
+  dialing = true;
+  document.body.classList.add('dialing');
+  setDial(e);
+});
+
+ringWrap.addEventListener('pointermove', (e) => {
+  if (dialing) setDial(e);
+});
+
+ringWrap.addEventListener('pointerup', async () => {
+  if (!dialing) return;
+  endDial();
+  update(await send('updateSettings', { settings: { [DIAL[state.phase].key]: dialMin } }));
+});
+
+ringWrap.addEventListener('pointercancel', () => {
+  if (!dialing) return;
+  endDial();
+  render(state); // put the real state back on screen
+});
+
+function endDial() {
+  dialing = false;
+  document.body.classList.remove('dialing');
+}
+
+/* ---------- extend chips ---------- */
+
+bindExtendButtons(sync);
 
 /* ---------- boot ---------- */
 

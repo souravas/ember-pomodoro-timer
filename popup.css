@@ -51,11 +51,25 @@ header {
     background 0.6s ease;
 }
 
+/* The flipped view and the extend row are display:flex, which would
+   otherwise win over the UA's [hidden] rule. */
+[hidden] {
+  display: none !important;
+}
+
 .controls {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 2px;
+}
+
+.extend {
+  display: flex;
+  gap: 8px;
+}
+.extend .btn-ghost {
+  padding: 8px 14px;
 }
 .btn-primary {
   padding: 10px 22px;
@@ -64,6 +78,11 @@ header {
   padding: 9px 14px;
 }
 
+footer {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
 footer button {
   font-family: var(--mono);
   font-size: 11px;
@@ -74,4 +93,13 @@ footer button {
 }
 footer button:hover {
   color: var(--ink-dim);
+}
+
+/* ---------- settings flip-view ---------- */
+
+.fields {
+  width: 100%;
+}
+#settings-view footer {
+  margin-top: 2px;
 }

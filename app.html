@@ -30,6 +30,10 @@
         <div class="ring-inner">
           <div class="time" id="time">25:00</div>
           <div class="status-hint" id="status-hint">press space to begin</div>
+          <div class="extend" id="extend">
+            <button class="btn-ghost" data-extend="1">+1 min</button>
+            <button class="btn-ghost" data-extend="5">+5 min</button>
+          </div>
         </div>
       </div>
 
@@ -56,11 +60,11 @@
 
       <section>
         <h3 class="kicker">durations · minutes</h3>
-        <div class="field" data-setting="focusMin" data-min="1" data-max="120">
+        <div class="field" data-setting="focusMin" data-min="1" data-max="90">
           <span>Focus</span>
           <div class="stepper">
             <button class="step" data-dir="-1">&minus;</button>
-            <output>25</output>
+            <input class="value" type="text" inputmode="numeric" value="25" />
             <button class="step" data-dir="1">+</button>
           </div>
         </div>
@@ -68,7 +72,7 @@
           <span>Short break</span>
           <div class="stepper">
             <button class="step" data-dir="-1">&minus;</button>
-            <output>5</output>
+            <input class="value" type="text" inputmode="numeric" value="5" />
             <button class="step" data-dir="1">+</button>
           </div>
         </div>
@@ -76,7 +80,7 @@
           <span>Long break</span>
           <div class="stepper">
             <button class="step" data-dir="-1">&minus;</button>
-            <output>15</output>
+            <input class="value" type="text" inputmode="numeric" value="15" />
             <button class="step" data-dir="1">+</button>
           </div>
         </div>
@@ -84,7 +88,7 @@
           <span>Long break every</span>
           <div class="stepper">
             <button class="step" data-dir="-1">&minus;</button>
-            <output>4</output>
+            <input class="value" type="text" inputmode="numeric" value="4" />
             <button class="step" data-dir="1">+</button>
           </div>
         </div>

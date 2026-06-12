@@ -8,6 +8,7 @@ import {
   defaultState,
   nextPhase,
   phaseDurationMs,
+  phaseTotalMs,
   remainingMs,
   todayKey,
 } from './core/timer.js';
@@ -55,6 +56,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     pause,
     reset,
     skip,
+    extend: (s) => extend(s, msg.minutes),
     updateSettings: (s) => updateSettings(s, msg.settings),
     chimeDone: closeOffscreen,
   };
@@ -99,7 +101,18 @@ async function reset(state) {
   state.status = 'idle';
   state.endsAt = null;
   state.remainingMs = phaseDurationMs(state.phase, state.settings);
+  state.extendedMs = 0;
   await clearAlarms();
+  return setState(state);
+}
+
+// Stretch the running phase only — the saved durations are untouched.
+async function extend(state, minutes) {
+  if (state.status !== 'running' || !(minutes > 0)) return state;
+  const ms = minutes * 60_000;
+  state.extendedMs = (state.extendedMs ?? 0) + ms;
+  state.endsAt += ms;
+  await chrome.alarms.create(ALARM_PHASE_END, { when: state.endsAt });
   return setState(state);
 }
 
@@ -126,12 +139,14 @@ async function advance(state, { credit }) {
 
   if (endedPhase === 'focus' && credit) {
     state.cyclePos += 1;
-    await recordFocusSession(state.settings.focusMin);
+    // Credit what was actually worked, including any "+5 min" extensions.
+    await recordFocusSession(Math.round(phaseTotalMs(state) / 60_000));
   }
   if (endedPhase === 'longBreak') state.cyclePos = 0;
 
   state.phase = next;
   state.remainingMs = phaseDurationMs(next, state.settings);
+  state.extendedMs = 0;
   state.endsAt = null;
   state.status = 'idle';
 
@@ -146,6 +161,7 @@ async function updateSettings(state, settings) {
   // If the current phase hasn't started, adopt its new duration.
   if (state.status === 'idle') {
     state.remainingMs = phaseDurationMs(state.phase, state.settings);
+    state.extendedMs = 0;
   }
   return setState(state);
 }

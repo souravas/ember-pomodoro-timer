@@ -91,6 +91,21 @@ body {
   width: min(58vh, 420px);
   aspect-ratio: 1;
   margin: 6px 0;
+  touch-action: none;
+  user-select: none;
+}
+[data-status='idle'] .ring-wrap {
+  cursor: grab;
+}
+.dialing .ring-wrap {
+  cursor: grabbing;
+}
+/* Track the pointer instantly while dialing — no easing lag. */
+.dialing .ring-progress {
+  transition: stroke 0.6s ease;
+}
+.dialing .status-hint {
+  color: var(--accent);
 }
 .ring {
   width: 100%;
@@ -122,6 +137,27 @@ body {
   color: var(--ink-faint);
   min-height: 14px;
   transition: color 0.3s ease;
+}
+
+/* "+1 / +5 min" chips, faded in only when the phase is nearly over. */
+.ring-inner .extend {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 23%;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.ring-inner .extend.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.ring-inner .extend .btn-ghost {
+  padding: 8px 16px;
 }
 
 .controls {
@@ -198,41 +234,6 @@ footer {
 }
 .panel section .kicker {
   margin-bottom: 10px;
-}
-
-.field {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--line-faint);
-  color: var(--ink-dim);
-}
-
-.stepper {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-}
-.stepper output {
-  min-width: 38px;
-  text-align: center;
-  font-weight: 500;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-.step {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  color: var(--ink-faint);
-  font-size: 15px;
-  transition: color 0.15s ease;
-}
-.step:hover {
-  color: var(--accent);
 }
 
 .toggle-field {

@@ -11,7 +11,7 @@
     </style>
   </head>
   <body data-phase="focus" data-status="idle">
-    <main class="popup">
+    <main class="popup" id="timer-view">
       <header class="reveal">
         <span class="kicker" id="session-kicker">session 1 of 4</span>
         <h1 class="phase-word" id="phase-label">focus</h1>
@@ -31,10 +31,68 @@
         <button class="btn-ghost" id="skip" title="Skip to next phase">Skip</button>
       </div>
 
+      <div class="extend reveal" id="extend" hidden>
+        <button class="btn-ghost" data-extend="1">+1 min</button>
+        <button class="btn-ghost" data-extend="5">+5 min</button>
+      </div>
+
       <footer class="reveal" style="--d: 0.24s">
+        <button id="open-settings">settings</button>
         <button id="open-app">open full timer&ensp;&#8599;</button>
       </footer>
     </main>
+
+    <main class="popup" id="settings-view" hidden>
+      <header class="reveal">
+        <span class="kicker">durations &middot; minutes</span>
+        <h1 class="phase-word">settings</h1>
+      </header>
+
+      <div class="fields reveal" style="--d: 0.06s">
+        <div class="field" data-setting="focusMin" data-min="1" data-max="90">
+          <span>Focus</span>
+          <div class="stepper">
+            <button class="step" data-dir="-1">&minus;</button>
+            <input class="value" type="text" inputmode="numeric" value="25" />
+            <button class="step" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="field" data-setting="shortBreakMin" data-min="1" data-max="60">
+          <span>Short break</span>
+          <div class="stepper">
+            <button class="step" data-dir="-1">&minus;</button>
+            <input class="value" type="text" inputmode="numeric" value="5" />
+            <button class="step" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="field" data-setting="longBreakMin" data-min="1" data-max="90">
+          <span>Long break</span>
+          <div class="stepper">
+            <button class="step" data-dir="-1">&minus;</button>
+            <input class="value" type="text" inputmode="numeric" value="15" />
+            <button class="step" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="field" data-setting="longBreakEvery" data-min="2" data-max="8">
+          <span>Long break every</span>
+          <div class="stepper">
+            <button class="step" data-dir="-1">&minus;</button>
+            <input class="value" type="text" inputmode="numeric" value="4" />
+            <button class="step" data-dir="1">+</button>
+          </div>
+        </div>
+      </div>
+
+      <footer class="reveal" style="--d: 0.12s">
+        <button id="close-settings">&larr;&ensp;back to timer</button>
+      </footer>
+    </main>
+
     <script type="module" src="../../popup.js"></script>
+    <script>
+      if (new URLSearchParams(location.search).get('settings') === '1') {
+        addEventListener('load', () => document.getElementById('open-settings').click());
+      }
+    </script>
   </body>
 </html>

@@ -50,6 +50,61 @@ export function createTicker(render) {
   };
 }
 
+// Extend chips only appear when the end is near — that is the moment the
+// feature serves; the rest of the time the running view stays clean.
+export function extendVisible(state) {
+  return state.status === 'running' && remainingMs(state) <= 5 * 60_000;
+}
+
+export function bindExtendButtons(onUpdate) {
+  for (const btn of document.querySelectorAll('button[data-extend]')) {
+    btn.addEventListener('click', async () => {
+      onUpdate(await send('extend', { minutes: Number(btn.dataset.extend) }));
+    });
+  }
+}
+
+// Wires every .field[data-setting] duration control: ± buttons nudge the
+// value, and the number itself is editable — Enter or blur commits, clamped
+// to the field's min/max. Returns a renderer that paints current values.
+export function bindDurationFields(getSettings, onUpdate) {
+  const fields = [...document.querySelectorAll('.field[data-setting]')].map((field) => ({
+    key: field.dataset.setting,
+    min: Number(field.dataset.min),
+    max: Number(field.dataset.max),
+    input: field.querySelector('.value'),
+    steps: [...field.querySelectorAll('.step')],
+  }));
+
+  async function save(f, value) {
+    const next = Math.min(f.max, Math.max(f.min, value));
+    onUpdate(await send('updateSettings', { settings: { [f.key]: next } }));
+    f.input.value = next; // show the clamp even when nothing else changed
+  }
+
+  for (const f of fields) {
+    for (const btn of f.steps) {
+      btn.addEventListener('click', () => save(f, getSettings()[f.key] + Number(btn.dataset.dir)));
+    }
+    f.input.addEventListener('focus', () => f.input.select());
+    f.input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') f.input.blur(); // blur fires the change event
+    });
+    f.input.addEventListener('change', () => {
+      const typed = Math.round(Number(f.input.value));
+      if (f.input.value.trim() !== '' && Number.isFinite(typed)) save(f, typed);
+      else f.input.value = getSettings()[f.key]; // garbage in — restore
+    });
+  }
+
+  return (state) => {
+    for (const f of fields) {
+      // Never repaint under the user's cursor mid-edit.
+      if (document.activeElement !== f.input) f.input.value = state.settings[f.key];
+    }
+  };
+}
+
 export function renderDots(container, state) {
   const total = state.settings.longBreakEvery;
   const done = state.cyclePos;
