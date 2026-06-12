@@ -19,9 +19,10 @@ use; the displayed state is set via URL params.
 | screenshot-2-popup.png       | 1280×800  | `shot-popup.html` |
 | screenshot-3-break.png       | 1280×800  | `shot-app.html?phase=shortBreak&status=running&remain=4.2&cycle=2&sessions=2&minutes=50` |
 | screenshot-4-settings.png    | 1280×800  | `shot-app.html?phase=focus&status=running&remain=21.5&cycle=1&sessions=2&minutes=50&panel=1` |
+| screenshot-5-stats.png       | 1280×800  | `shot-app.html?sessions=3&minutes=80#stats` (shim seeds a year of fake history) |
 | promo-small-440x280.png      | 440×280   | `tile-small.html` |
 | promo-marquee-1400x560.png   | 1400×560  | `tile-marquee.html` |
 
-`shot-app.html` / `popup-framed.html` duplicate the markup of `app.html` /
-`popup.html` — if the real markup changes, update them to match before
-regenerating.
+`shot-app.html` / `popup-framed.html` are generated from the real `app.html`
+/ `popup.html` — after the real markup changes, run
+`python3 tools/make-store-src.py` to rebuild them before regenerating shots.

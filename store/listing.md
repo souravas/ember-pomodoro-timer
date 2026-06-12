@@ -104,8 +104,9 @@ reliable way for the timer to fire on time.
 ```
 Stores the user's timer settings (phase durations, auto-start, sound and
 notification preferences), the current timer state, and a local count of
-completed sessions per day. All data stays in chrome.storage.local on the
-user's device.
+completed sessions per day. Stats and the session log stay in
+chrome.storage.local on the user's device; only the settings object uses
+chrome.storage.sync so preferences follow the user's own Chrome profile.
 ```
 
 `notifications`
@@ -119,9 +120,33 @@ off in the extension's settings.
 `offscreen`
 
 ```
-Service workers cannot play audio. A short-lived offscreen document is
-created only to play the brief end-of-phase chime, then closed. Can be
-turned off in the extension's settings.
+Service workers cannot play audio. An offscreen document is created only to
+play the end-of-phase chime and the optional ambient focus sound, and Chrome
+closes it shortly after audio stops. Can be turned off in the extension's
+settings.
+```
+
+`idle`
+
+```
+Detects when the machine locks so a running focus session auto-pauses —
+otherwise time the user did not work (lock screen, sleep) would be counted
+as focus. No idle data is stored or transmitted; the optional behaviour can
+be turned off in settings.
+```
+
+`contextMenus`
+
+```
+Adds start/pause, skip, and open-stats items to the toolbar icon's
+right-click menu, so the timer can be controlled without opening the popup.
+```
+
+`sidePanel`
+
+```
+Offers the same compact timer as a Chrome side panel, so the user can keep
+it visible next to the page they are working on. Opened only by the user.
 ```
 
 **Host permissions**: none requested.

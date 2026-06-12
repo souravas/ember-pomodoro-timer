@@ -4,6 +4,10 @@
 // truth and applyTheme() reconciles the two as soon as it loads.
 try {
   var theme = localStorage.getItem('ember-theme');
+  // 'auto' is stored unresolved; the OS decides at paint time.
+  if (theme === 'auto') {
+    theme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'ember';
+  }
   if (theme) document.documentElement.dataset.theme = theme;
   var accent = localStorage.getItem('ember-accent');
   if (accent) document.documentElement.dataset.accent = accent;

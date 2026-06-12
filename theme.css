@@ -610,12 +610,43 @@ button {
 .swatch[data-accent='auto']::after {
   background: conic-gradient(#e25c3f, #e3b04e, #79c995, #5da2f2, #a98ef5, #e25c3f);
 }
+/* The "auto" theme swatch: half ember-dark, half light — follows the OS. */
+.swatch[data-theme='auto'] {
+  background: linear-gradient(135deg, #171210 50%, #f4eee2 50%);
+}
+.swatch[data-theme='auto']::after {
+  background: linear-gradient(135deg, #e25c3f 50%, #c0452a 50%);
+}
 .swatch:hover {
   transform: translateY(-1px);
 }
 .swatch.active {
   border-color: var(--accent-focus);
   box-shadow: 0 0 0 1px var(--accent-focus);
+}
+
+/* Strict mode: the control fills while held; let go early and nothing
+   happens. Shared by every surface with timer buttons. */
+button.holding {
+  position: relative;
+  overflow: hidden;
+}
+button.holding::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  transform-origin: left;
+  animation: hold-fill var(--hold-ms, 1200ms) linear forwards;
+  pointer-events: none;
+}
+@keyframes hold-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 /* Entrance */

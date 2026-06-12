@@ -93,6 +93,112 @@ header {
   display: none !important;
 }
 
+/* Session label — optional "what are you working on?"; recent labels drop
+   down as chips while the field has focus. */
+.label-wrap {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -4px;
+}
+/* The reveal animation gives every sibling its own stacking context, so the
+   dropdown's z-index alone can't climb out — lift the whole wrap while open. */
+.label-wrap.open {
+  z-index: 30;
+}
+.label-input {
+  field-sizing: content;
+  min-width: 200px;
+  max-width: 230px;
+  padding: 3px 8px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+  background: none;
+  border: none;
+  outline: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+.label-input::placeholder {
+  color: var(--ink-faint);
+  text-transform: lowercase;
+}
+.label-input:hover {
+  border-bottom-color: var(--line);
+}
+.label-input:focus {
+  border-bottom-color: var(--line-strong);
+  color: var(--ink);
+}
+[data-phase='shortBreak'] .label-wrap,
+[data-phase='longBreak'] .label-wrap {
+  opacity: 0.45;
+}
+.label-clear {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink-faint);
+  transition: color 0.2s ease;
+}
+.label-wrap.has-label .label-clear {
+  display: inline-flex;
+}
+.label-clear:hover {
+  color: var(--ink);
+}
+/* The popup is dense, so the dropdown gets a solid panel behind it —
+   chips floating bare over the controls are unreadable. */
+.label-chips {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: none;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  width: max-content;
+  max-width: 264px;
+  padding: 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 10px 28px var(--scrim);
+}
+.label-wrap.open .label-chips {
+  display: flex;
+}
+.chip {
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.chip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.chip-min {
+  color: var(--ink-faint);
+}
+
 .controls {
   display: flex;
   align-items: center;
@@ -149,7 +255,7 @@ header {
 footer {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 13px; /* four entries now — settings · stats · panel · full */
 }
 footer button {
   font-family: var(--mono);
@@ -187,4 +293,34 @@ footer button:hover {
 .theme-block .swatch {
   width: 24px;
   height: 24px;
+}
+
+/* One line of today (and goal progress) under the modes. */
+.today-line {
+  cursor: pointer;
+  min-height: 14px;
+  transition: color 0.2s ease;
+}
+.today-line:hover {
+  color: var(--ink-dim);
+}
+
+/* Overtime — past zero the digits burn. */
+body.overtime .time {
+  color: var(--accent);
+  text-shadow: 0 0 22px color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+/* The same markup doubles as the side panel — taller room, centred. */
+body.sidepanel {
+  width: auto;
+  min-width: 260px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body.sidepanel .popup {
+  width: min(320px, 100%);
+  padding: 30px 22px;
 }

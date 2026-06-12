@@ -22,6 +22,22 @@
 
       <div class="dots reveal" style="--d: 0.14s" id="dots" aria-hidden="true"></div>
 
+      <!-- Optional session label; recent labels drop down as chips on focus. -->
+      <div class="label-wrap reveal" style="--d: 0.16s" id="label-wrap">
+        <input
+          id="label"
+          class="label-input"
+          type="text"
+          maxlength="60"
+          placeholder="what are you working on?"
+          aria-label="Session label (optional)"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="label-clear" id="label-clear" title="Clear label" aria-label="Clear label">&times;</button>
+        <div class="label-chips" id="label-chips" aria-label="Recent labels"></div>
+      </div>
+
       <div class="controls reveal" style="--d: 0.18s">
         <button class="btn-primary" id="toggle">Start</button>
         <button class="btn-ghost" id="reset" title="Reset this phase">Reset</button>
@@ -39,9 +55,13 @@
         <button class="mode" data-mode="stopwatch" aria-pressed="false">stopwatch</button>
       </nav>
 
+      <button class="kicker today-line reveal" id="popup-today" style="--d: 0.22s" title="Open stats"></button>
+
       <footer class="reveal" style="--d: 0.24s">
         <button id="open-settings">settings</button>
-        <button id="open-app">open full timer&ensp;&#8599;</button>
+        <button id="open-stats">stats</button>
+        <button id="open-panel" title="Keep Ember beside the page">panel</button>
+        <button id="open-app" title="Open the full-page timer">full&ensp;&#8599;</button>
       </footer>
     </main>
 

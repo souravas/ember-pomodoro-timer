@@ -128,6 +128,105 @@ body {
   line-height: 1;
 }
 
+/* Session label — an optional "what are you working on?" under the phase
+   word. Quiet until hovered; recent labels drop down as chips on focus. */
+.label-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -6px;
+}
+/* The reveal animation gives every sibling its own stacking context, so the
+   dropdown's z-index alone can't climb out — lift the whole wrap while open. */
+.label-wrap.open {
+  z-index: 30;
+}
+.label-input {
+  field-sizing: content;
+  min-width: 230px;
+  max-width: min(70vw, 420px);
+  padding: 4px 10px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  background: none;
+  border: none;
+  outline: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+.label-input::placeholder {
+  color: var(--ink-faint);
+  text-transform: lowercase;
+}
+.label-input:hover {
+  border-bottom-color: var(--line);
+}
+.label-input:focus {
+  border-bottom-color: var(--line-strong);
+  color: var(--ink);
+}
+/* Breaks aren't labelled work — the intent dims with the flame. */
+[data-phase='shortBreak'] .label-wrap,
+[data-phase='longBreak'] .label-wrap {
+  opacity: 0.45;
+}
+.label-clear {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--ink-faint);
+  transition: color 0.2s ease;
+}
+.label-wrap.has-label .label-clear {
+  display: inline-flex;
+}
+.label-clear:hover {
+  color: var(--ink);
+}
+.label-chips {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: none;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: max-content;
+  max-width: min(80vw, 460px);
+}
+.label-wrap.open .label-chips {
+  display: flex;
+}
+.chip {
+  padding: 7px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.chip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.chip-min {
+  color: var(--ink-faint);
+}
+
 .ring-wrap {
   position: relative;
   width: min(58vh, 420px);
@@ -522,4 +621,612 @@ footer {
 .toggle-field input:checked + .switch::after {
   transform: translateX(15px);
   background: var(--accent);
+}
+
+/* Segmented row — the week-start picker. */
+.seg {
+  display: flex;
+  gap: 8px;
+}
+.seg button {
+  flex: 1;
+  padding: 9px 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.seg button:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.seg button.active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ---------- stats dashboard overlay ---------- */
+
+.stat-link {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.stat-link:hover {
+  color: var(--ink-dim);
+}
+
+/* Full-page overlay. z-index 40 keeps it under the grain (50) so the
+   dashboard gets the same texture as the room, and under the settings
+   scrim/panel (60/70). */
+.stats {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow-y: auto;
+  background:
+    radial-gradient(90% 50% at 50% -10%, color-mix(in srgb, var(--accent-focus) 7%, transparent), transparent 70%),
+    radial-gradient(120% 100% at 50% 120%, var(--bg-sink), transparent 60%),
+    var(--bg);
+  opacity: 0;
+  visibility: hidden; /* keeps the closed dashboard out of the tab order */
+  transition:
+    opacity 0.3s ease,
+    visibility 0s 0.3s;
+}
+.stats.open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0s;
+}
+
+.stats-inner {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 26px 36px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transform: translateY(14px);
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.stats.open .stats-inner {
+  transform: translateY(0);
+}
+
+.stats-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.stats-head .phase-word {
+  font-size: 34px;
+  color: var(--accent-focus);
+}
+.stats-head .btn-ghost {
+  padding: 8px 16px;
+}
+
+.card {
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px 20px 16px;
+}
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 16px 18px;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.stat-value {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--ink-faint);
+}
+
+.chart-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.chart-readout {
+  font-family: var(--mono);
+  font-size: 13px;
+  text-transform: lowercase;
+  color: var(--ink-dim);
+  margin-top: 8px;
+  min-height: 17px;
+}
+
+/* Range tabs, same voice as the mode tabs. */
+.ranges {
+  display: inline-flex;
+  gap: 18px;
+  padding-top: 2px;
+}
+.range {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 6px 2px;
+  transition: color 0.25s ease;
+}
+.range:hover {
+  color: var(--ink-dim);
+}
+.range.active {
+  color: var(--accent-focus);
+}
+
+#chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+}
+#chart text {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  fill: var(--ink-faint);
+}
+#chart .grid {
+  stroke: var(--line-faint);
+}
+#chart .axis {
+  stroke: var(--line);
+}
+#chart .bar {
+  fill: color-mix(in srgb, var(--accent-focus) 50%, transparent);
+}
+#chart .bar.today {
+  fill: var(--accent-focus);
+}
+#chart .spark-area {
+  fill: url(#chart-fade);
+}
+#chart .spark-line {
+  fill: none;
+  stroke: var(--accent-focus);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+#chart .cross {
+  stroke: var(--line-strong);
+  stroke-dasharray: 3 4;
+}
+#chart .dot {
+  fill: var(--accent-focus);
+  filter: drop-shadow(0 0 6px var(--accent-focus));
+}
+
+/* "By label" card: name · bar · amount rows, busiest first. */
+.label-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.label-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 180px) 1fr max-content;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.label-row .name {
+  color: var(--ink-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.label-row.muted .name {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+.label-row .track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line-faint);
+  overflow: hidden;
+}
+.label-row .fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent-focus) 60%, transparent);
+}
+.label-row.muted .fill {
+  background: var(--line-strong);
+}
+.label-row .amount {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* GitHub-style year heatmap: columns are weeks, rows mon..sun. */
+.heat-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.heat-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 11px);
+  grid-auto-columns: 11px;
+  gap: 3px;
+  width: max-content;
+}
+.heat-grid i,
+.heat-legend i {
+  border-radius: 3px;
+  background: var(--line-faint);
+}
+.heat-grid i[data-level='1'],
+.heat-legend i[data-level='1'] {
+  background: color-mix(in srgb, var(--accent-focus) 28%, transparent);
+}
+.heat-grid i[data-level='2'],
+.heat-legend i[data-level='2'] {
+  background: color-mix(in srgb, var(--accent-focus) 52%, transparent);
+}
+.heat-grid i[data-level='3'],
+.heat-legend i[data-level='3'] {
+  background: color-mix(in srgb, var(--accent-focus) 76%, transparent);
+}
+.heat-grid i[data-level='4'],
+.heat-legend i[data-level='4'] {
+  background: var(--accent-focus);
+}
+.heat-grid i.today {
+  outline: 1px solid var(--ink-dim);
+  outline-offset: 1px;
+}
+.heat-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--ink-faint);
+}
+.heat-legend i {
+  width: 11px;
+  height: 11px;
+}
+.heat-legend span {
+  margin: 0 4px;
+}
+
+/* ---------- v1.3 additions ---------- */
+
+/* The welcome overlay and the entry form are display:flex, which would
+   otherwise win over the UA's [hidden] rule. */
+[hidden] {
+  display: none !important;
+}
+
+/* Duration presets sit above the steppers; a preset is "active" when the
+   current durations match it exactly. */
+.presets {
+  margin-bottom: 10px;
+}
+.sub-kicker {
+  margin: 12px 0 10px;
+}
+
+/* Volume row: label · slider · preview. */
+.volume-field {
+  display: grid;
+  grid-template-columns: max-content 1fr max-content;
+  align-items: center;
+  gap: 12px;
+}
+.volume-field input[type='range'] {
+  accent-color: var(--accent);
+  width: 100%;
+}
+.preview-btn {
+  padding: 6px 12px;
+}
+
+.data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.data-actions .btn-ghost,
+.shortcut-link {
+  padding: 8px 14px;
+}
+.shortcut-link {
+  align-self: flex-start;
+  margin-top: 8px;
+  color: var(--ink-faint);
+}
+
+/* Overtime — past zero the digits burn. */
+body.overtime .time {
+  color: var(--accent);
+  text-shadow: 0 0 30px color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+/* Zen mode: just the flame and the time. */
+body.zen .topbar,
+body.zen footer,
+body.zen .label-wrap,
+body.zen .dots,
+body.zen .controls,
+body.zen #session-kicker {
+  visibility: hidden;
+}
+
+/* ---------- welcome overlay ---------- */
+
+.welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--scrim);
+  backdrop-filter: blur(3px);
+}
+.welcome-card {
+  width: min(440px, 92vw);
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 30px 32px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: left;
+}
+.welcome-card .phase-word {
+  font-size: 32px;
+}
+.welcome-card ul {
+  margin: 0;
+  padding: 0 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+.welcome-card b {
+  color: var(--ink);
+  font-weight: 500;
+}
+.welcome-card .btn-primary {
+  align-self: center;
+  margin-top: 4px;
+}
+
+/* ---------- stats: hour histogram, session ledger ---------- */
+
+#hours-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+#hours-chart text {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  fill: var(--ink-faint);
+}
+#hours-chart .hbar {
+  fill: color-mix(in srgb, var(--accent-focus) 55%, transparent);
+}
+#hours-chart .axis {
+  stroke: var(--line);
+}
+
+#sessions-card .chart-head .btn-ghost {
+  padding: 7px 14px;
+}
+.entry-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.entry-form input {
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: none;
+  color-scheme: inherit;
+}
+.entry-form input:focus {
+  border-color: var(--line-strong);
+}
+.entry-form #entry-min {
+  width: 90px;
+}
+.entry-form #entry-label {
+  flex: 1;
+  min-width: 140px;
+}
+.entry-form .btn-ghost {
+  padding: 8px 16px;
+}
+
+.session-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.session-row {
+  display: grid;
+  grid-template-columns: max-content max-content 1fr max-content max-content;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--line-faint);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.session-row:last-child {
+  border-bottom: none;
+}
+.session-row .when {
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.session-row .slabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.session-row .slabel.muted {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+.session-row .smin {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.session-row .smode {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.row-del {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink-faint);
+  opacity: 0;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+.session-row:hover .row-del,
+.row-del:focus-visible {
+  opacity: 1;
+}
+.row-del:hover {
+  color: var(--accent-focus);
+}
+.sessions-empty {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+  padding: 6px 2px;
+}
+
+/* Label rows grow quiet edit/clear actions on hover. */
+.label-row {
+  grid-template-columns: minmax(90px, 180px) 1fr max-content max-content;
+}
+.label-actions {
+  display: inline-flex;
+  gap: 4px;
+}
+.label-actions button {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--ink-faint);
+  opacity: 0;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+.label-row:hover .label-actions button,
+.label-actions button:focus-visible {
+  opacity: 1;
+}
+.label-actions button:hover {
+  color: var(--accent-focus);
+}
+
+/* Goal line across the chart. */
+#chart .goal-line {
+  stroke: var(--accent-focus);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+  opacity: 0.7;
+}
+#chart .goal-text {
+  fill: var(--accent-focus);
+}
+
+/* ---------- picture-in-picture mini timer ---------- */
+
+body.pip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  text-align: center;
+}
+body.pip .phase-word {
+  font-size: 18px;
+}
+body.pip .time {
+  font-size: 46px;
+}
+body.pip .controls {
+  margin: 0;
+  gap: 8px;
+}
+body.pip .btn-primary {
+  padding: 8px 22px;
+  font-size: 11px;
 }

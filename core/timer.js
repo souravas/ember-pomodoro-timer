@@ -10,10 +10,27 @@ export const DEFAULT_SETTINGS = {
   autoStartBreaks: true,
   autoStartFocus: false,
   sound: true,
+  chime: 'bell', // chime voice: bell | warm | pluck
+  volume: 0.7, // 0..1, shared by chime, warning tick, and ambient sound
+  ambient: 'off', // played while focused work runs: off | ticking | rain | noise
+  breakEndWarn: false, // soft tick 30s before a break ends
   notifications: true,
+  pauseOnLock: true, // auto-pause focused work when the machine locks
+  overtime: false, // focus/timer runs past zero, counting up, until ended
+  strict: false, // pause/reset/skip need a press-and-hold during focus
+  goalMin: 0, // daily focus goal in minutes; 0 = off
+  showBadge: true,
   theme: 'ember',
   accent: 'auto', // flame color override; 'auto' keeps the theme's own
+  weekStart: 1, // first day of the week for stats: 0 sun, 1 mon, 6 sat
 };
+
+// Quick duration presets — applied as a batch onto the four cycle settings.
+export const PRESETS = [
+  { id: 'classic', label: '25 · 5', settings: { focusMin: 25, shortBreakMin: 5, longBreakMin: 15, longBreakEvery: 4 } },
+  { id: 'fifty', label: '50 · 10', settings: { focusMin: 50, shortBreakMin: 10, longBreakMin: 20, longBreakEvery: 3 } },
+  { id: 'deep', label: '90 · 20', settings: { focusMin: 90, shortBreakMin: 20, longBreakMin: 30, longBreakEvery: 2 } },
+];
 
 export const MODES = ['pomodoro', 'timer', 'stopwatch'];
 
@@ -45,13 +62,29 @@ export function defaultState() {
     remainingMs: DEFAULT_SETTINGS.focusMin * 60_000,
     extendedMs: 0, // mid-session "+5 min" extensions; cleared when the phase ends
     cyclePos: 0, // focus sessions completed since the last long break
+    label: '', // optional "what am I working on" — rides along when work is banked
+    labelDay: null, // YYYY-MM-DD the label was set; lets a stale one retire
+    startedAt: null, // epoch ms the current run first left idle (resume keeps it)
+    overtime: false, // phase finished but keeps running past zero (a setting opts in)
+    autoPausedAt: null, // epoch ms the machine locked mid-run, if that's why we're paused
     settings: { ...DEFAULT_SETTINGS },
   };
 }
 
-// States stored by older versions predate modes.
-export function normalizeState(state) {
+// States stored by older versions predate modes, labels, and overtime.
+export function normalizeState(state, now = new Date()) {
   state.mode ??= 'pomodoro';
+  state.label ??= '';
+  state.labelDay ??= null;
+  state.startedAt ??= null;
+  state.overtime ??= false;
+  state.autoPausedAt ??= null;
+  // A label is an intent for the day — yesterday's shouldn't quietly tag
+  // today's work. A run still in flight keeps its label until it's banked.
+  if (state.label && state.status === 'idle' && state.labelDay !== todayKey(now)) {
+    state.label = '';
+    state.labelDay = null;
+  }
   return state;
 }
 
@@ -75,8 +108,17 @@ export function elapsedMs(state, now = Date.now()) {
   return state.remainingMs;
 }
 
-// What the big digits show: counts down, except the stopwatch counts up.
+// Time run past the phase's end while in overtime. endsAt stays parked at
+// the original end, so overtime survives worker restarts like everything else.
+export function overtimeMs(state, now = Date.now()) {
+  if (!state.overtime || state.status !== 'running') return 0;
+  return Math.max(0, now - state.endsAt);
+}
+
+// What the big digits show: counts down, except the stopwatch counts up —
+// and overtime counts up from zero past the end.
 export function displayMs(state, now = Date.now()) {
+  if (state.overtime) return overtimeMs(state, now);
   return state.mode === 'stopwatch' ? elapsedMs(state, now) : remainingMs(state, now);
 }
 
@@ -87,8 +129,10 @@ export function phaseTotalMs(state) {
 }
 
 // Fraction of the current phase still left, 0..1. Drives the progress ring.
-// The stopwatch has no end, so its arc sweeps once per minute instead.
+// The stopwatch has no end, so its arc sweeps once per minute instead —
+// overtime, also endless, borrows the same sweep.
 export function remainingFraction(state, now = Date.now()) {
+  if (state.overtime) return (overtimeMs(state, now) % 60_000) / 60_000;
   if (state.mode === 'stopwatch') return (elapsedMs(state, now) % 60_000) / 60_000;
   return Math.min(1, Math.max(0, remainingMs(state, now) / phaseTotalMs(state)));
 }

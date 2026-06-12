@@ -1,16 +1,14 @@
 <!doctype html>
+<!-- Side panel surface: a copy of popup.html with body.sidepanel (popup.css adapts the layout). Regenerate after popup.html changes: tools/make-sidepanel.sh -->
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Ember popup — store screenshot</title>
-    <script src="chrome-shim.js"></script>
-    <link rel="stylesheet" href="../../theme.css" />
-    <link rel="stylesheet" href="../../popup.css" />
-    <style>
-      body { overflow: hidden; }
-    </style>
+    <title>Ember</title>
+    <script src="theme-boot.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <link rel="stylesheet" href="popup.css" />
   </head>
-  <body data-phase="focus" data-status="idle">
+  <body class="sidepanel" data-phase="focus" data-status="idle">
     <main class="popup" id="timer-view">
       <header class="reveal">
         <span class="kicker" id="session-kicker">session 1 of 4</span>
@@ -133,11 +131,6 @@
       </footer>
     </main>
 
-    <script type="module" src="../../popup.js"></script>
-      <script>
-      if (new URLSearchParams(location.search).get('settings') === '1') {
-        addEventListener('load', () => document.getElementById('open-settings').click());
-      }
-    </script>
+    <script type="module" src="popup.js"></script>
   </body>
 </html>

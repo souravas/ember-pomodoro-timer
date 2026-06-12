@@ -9,7 +9,7 @@ import json, os, zipfile
 FILES = [
     "manifest.json",
     "background.js", "offscreen.html", "offscreen.js",
-    "popup.html", "popup.css", "popup.js",
+    "popup.html", "popup.css", "popup.js", "sidepanel.html",
     "app.html", "app.css", "app.js",
     "theme.css", "theme-boot.js", "ui.js",
 ]

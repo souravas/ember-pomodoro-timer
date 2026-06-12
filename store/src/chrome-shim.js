@@ -26,6 +26,7 @@
     notifications: true,
     theme: q.get('theme') ?? 'ember',
     accent: q.get('accent') ?? 'auto',
+    weekStart: num('weekstart', 1), // 0 sun, 1 mon, 6 sat
   };
 
   const mode = q.get('mode') ?? 'pomodoro';
@@ -44,15 +45,54 @@
         : null,
     remainingMs: remainMs,
     cyclePos: num('cycle', 1),
+    label: q.get('label') ?? '',
     settings,
   };
 
   // Same key shape as core/timer.js todayKey() (local date).
-  const d = new Date();
-  const todayKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-    d.getDate()
-  ).padStart(2, '0')}`;
-  const stats = { [todayKey]: { sessions: num('sessions', 3), minutes: num('minutes', 75) } };
+  const keyOf = (d) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+      d.getDate()
+    ).padStart(2, '0')}`;
+
+  // Labels stamp the day they were set; without this normalizeState would
+  // retire the preset label as stale.
+  state.labelDay = state.label ? keyOf(new Date()) : null;
+
+  // A plausible year of history so the stats dashboard has something to
+  // show. Deterministic (seeded), so shots are reproducible: weekdays run
+  // warmer than weekends, and some days are skipped outright.
+  let seedNum = 7;
+  const rand = () => (seedNum = (seedNum * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
+  const stats = {};
+  for (let i = 364; i >= 1; i--) {
+    const d = new Date(Date.now() - i * 86_400_000);
+    const weekend = d.getDay() === 0 || d.getDay() === 6;
+    if (rand() < (weekend ? 0.55 : 0.18)) continue; // day off
+    const sessions = 1 + Math.floor(rand() * (weekend ? 4 : 8));
+    stats[keyOf(d)] = { sessions, minutes: sessions * 25 + Math.floor(rand() * 20) };
+  }
+  stats[keyOf(new Date())] = { sessions: num('sessions', 3), minutes: num('minutes', 75) };
+
+  // A few days of labelled session-log entries so the recent-label chips
+  // and the dashboard's "by label" card have something to show.
+  const log = [];
+  const labels = ['deep work', 'thesis draft', 'email', 'side project'];
+  for (let i = 6; i >= 0; i--) {
+    const dayEnd = Date.now() - i * 86_400_000 - 3 * 3_600_000;
+    for (let s = 0; s < 2 + Math.floor(rand() * 3); s++) {
+      const min = 25;
+      const end = dayEnd - s * 2 * 3_600_000;
+      log.unshift({
+        start: end - min * 60_000,
+        end,
+        min,
+        label: rand() < 0.25 ? null : labels[Math.floor(rand() * labels.length)],
+        mode: 'pomodoro',
+        completed: true,
+      });
+    }
+  }
 
   const minKey = {
     focus: 'focusMin',
@@ -61,10 +101,17 @@
     timer: 'timerMin',
   };
 
+  const stored = { state, stats, log };
   window.chrome = {
     storage: {
       local: {
-        get: async (key) => (key === 'state' ? { state } : key === 'stats' ? { stats } : {}),
+        // Both forms the views use: a single key or an array of keys.
+        get: async (key) =>
+          Object.fromEntries(
+            (Array.isArray(key) ? key : [key])
+              .filter((k) => k in stored)
+              .map((k) => [k, stored[k]])
+          ),
       },
       onChanged: { addListener() {} },
     },
@@ -81,6 +128,9 @@
             state.remainingMs = state.settings[minKey[state.phase]] * 60_000;
           }
         }
+        if (msg && msg.type === 'setLabel') {
+          state.label = String(msg.label ?? '').trim().slice(0, 60);
+        }
         if (msg && msg.type === 'setMode' && msg.mode !== state.mode) {
           state.mode = msg.mode;
           state.phase = msg.mode === 'pomodoro' ? 'focus' : msg.mode;
@@ -92,6 +142,7 @@
         return state;
       },
       getURL: (p) => p,
+      getManifest: () => ({ version: 'shot' }),
     },
     tabs: { create() {} },
   };

@@ -8,6 +8,7 @@ import {
   normalizeState,
   remainingMs,
 } from './core/timer.js';
+import { labelTotals, recentLabels } from './core/log.js';
 
 export async function getState() {
   const { state } = await chrome.storage.local.get('state');
@@ -50,12 +51,12 @@ export function createTicker(render) {
 
   function schedule() {
     // Counting down, the shown value flips when the remainder crosses each
-    // half-second mark going down; counting up (stopwatch), going up.
+    // half-second mark going down; counting up (stopwatch, overtime), going up.
     const shown = displayMs(state);
-    const untilFlip =
-      state.mode === 'stopwatch'
-        ? (1500 - (shown % 1000)) % 1000 || 1000
-        : (shown + 500) % 1000 || 1000;
+    const countsUp = state.mode === 'stopwatch' || state.overtime;
+    const untilFlip = countsUp
+      ? (1500 - (shown % 1000)) % 1000 || 1000
+      : (shown + 500) % 1000 || 1000;
     timer = setTimeout(tick, untilFlip + 15);
   }
 
@@ -70,11 +71,59 @@ export function createTicker(render) {
 
 // Extend chips only appear when the end is near — that is the moment the
 // feature serves; the rest of the time the running view stays clean.
-// (The stopwatch has no end to extend.)
+// (The stopwatch has no end to extend; overtime is already past it.)
 export function extendVisible(state) {
   return (
-    state.mode !== 'stopwatch' && state.status === 'running' && remainingMs(state) <= 5 * 60_000
+    state.mode !== 'stopwatch' &&
+    !state.overtime &&
+    state.status === 'running' &&
+    remainingMs(state) <= 5 * 60_000
   );
+}
+
+// Strict mode turns a control into a press-and-hold: while `isArmed()` says
+// so, the action fires only after the pointer (or Enter/Space) stays down
+// for `holdMs` — friction by design. Unarmed, it's a normal click.
+export function bindControl(btn, isArmed, action, holdMs = 1200) {
+  let timer = null;
+  let held = false;
+
+  function startHold() {
+    held = false;
+    btn.classList.add('holding');
+    btn.style.setProperty('--hold-ms', `${holdMs}ms`);
+    timer = setTimeout(() => {
+      held = true;
+      btn.classList.remove('holding');
+      action();
+    }, holdMs);
+  }
+  function cancelHold() {
+    clearTimeout(timer);
+    btn.classList.remove('holding');
+  }
+
+  btn.addEventListener('pointerdown', () => {
+    if (isArmed()) startHold();
+  });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) {
+    btn.addEventListener(ev, cancelHold);
+  }
+  btn.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && !e.repeat && isArmed()) {
+      e.preventDefault(); // and with it, the synthetic click on keyup
+      startHold();
+    }
+  });
+  btn.addEventListener('keyup', cancelHold);
+  btn.addEventListener('click', () => {
+    // A completed hold already acted; an early release acts as the friction.
+    if (held) {
+      held = false;
+      return;
+    }
+    if (!isArmed()) action();
+  });
 }
 
 export function bindExtendButtons(onUpdate) {
@@ -133,6 +182,7 @@ export function bindDurationFields(getSettings, onUpdate) {
 // Theme list for the pickers. Colors live in theme.css — each swatch carries
 // data-theme and lets the cascade paint it with that theme's own tokens.
 export const THEMES = [
+  { id: 'auto', label: 'Auto (match system)' },
   { id: 'ember', label: 'Ember' },
   { id: 'light', label: 'Light' },
   { id: 'porcelain', label: 'Porcelain' },
@@ -161,23 +211,39 @@ export const ACCENTS = [
   { id: 'mono', label: 'Mono' },
 ];
 
-// The attributes live on <html> so theme-boot.js can set them before first
-// paint; localStorage mirrors the settings for that same early read.
-export function applyTheme(theme, accent = 'auto') {
-  const el = document.documentElement;
-  if (el.dataset.theme !== theme) {
-    el.dataset.theme = theme;
-    mirror('ember-theme', theme);
-  }
-  if (el.dataset.accent !== accent) {
-    el.dataset.accent = accent;
-    mirror('ember-accent', accent);
-  }
+// The 'auto' theme follows the OS: Ember in the dark, Light in the light.
+const prefersLight = matchMedia('(prefers-color-scheme: light)');
+
+export function resolveTheme(theme) {
+  if (theme !== 'auto') return theme;
+  return prefersLight.matches ? 'light' : 'ember';
 }
+
+// The attributes live on <html> so theme-boot.js can set them before first
+// paint; localStorage mirrors the settings (unresolved, so 'auto' stays
+// auto) for that same early read.
+let appliedTheme = null;
+let appliedAccent = 'auto';
+
+export function applyTheme(theme, accent = 'auto') {
+  appliedTheme = theme;
+  appliedAccent = accent;
+  const el = document.documentElement;
+  const resolved = resolveTheme(theme);
+  if (el.dataset.theme !== resolved) el.dataset.theme = resolved;
+  mirror('ember-theme', theme);
+  if (el.dataset.accent !== accent) el.dataset.accent = accent;
+  mirror('ember-accent', accent);
+}
+
+// An OS scheme flip re-resolves 'auto' on the open page, no reload needed.
+prefersLight.addEventListener('change', () => {
+  if (appliedTheme === 'auto') applyTheme(appliedTheme, appliedAccent);
+});
 
 function mirror(key, value) {
   try {
-    localStorage.setItem(key, value);
+    if (localStorage.getItem(key) !== value) localStorage.setItem(key, value);
   } catch {
     // Mirror only — the page just falls back to the default until state loads.
   }
@@ -235,6 +301,94 @@ export function bindAccentPicker(onUpdate) {
     settingKey: 'accent',
     kind: 'flame',
   });
+}
+
+// Wires the session label — an optional "what are you working on?" attached
+// to the timer. Entering the field surfaces recent labels (with today's
+// minutes) as one-click chips; the worker stamps the label onto whatever
+// work it banks next. Returns a renderer that paints the current label.
+export function bindLabelField(onUpdate) {
+  const wrap = document.getElementById('label-wrap');
+  if (!wrap) return () => {};
+  const input = document.getElementById('label');
+  const chips = document.getElementById('label-chips');
+  const clear = document.getElementById('label-clear');
+  let current = '';
+
+  async function commit(value) {
+    const label = value.trim();
+    if (label === current) return;
+    onUpdate(await send('setLabel', { label }));
+  }
+
+  input.addEventListener('keydown', (e) => {
+    // Space and Escape belong to the field while typing, not the page.
+    e.stopPropagation();
+    if (e.key === 'Enter') input.blur(); // blur fires the change event
+    if (e.key === 'Escape') {
+      input.value = current; // back to the committed value — no change fires
+      input.blur();
+    }
+  });
+  input.addEventListener('change', () => commit(input.value));
+  input.addEventListener('input', () => wrap.classList.toggle('has-label', input.value !== ''));
+
+  clear.addEventListener('click', () => {
+    input.value = '';
+    wrap.classList.remove('has-label');
+    commit('');
+  });
+
+  // Chips appear while the field has focus, fetched fresh on each entry.
+  // focusin/focusout (not focus/blur) so moving between the input, the
+  // clear button, and a chip never closes the dropdown mid-click.
+  input.addEventListener('focus', async () => {
+    const { log = [] } = await chrome.storage.local.get('log');
+    renderChips(log);
+  });
+  wrap.addEventListener('focusout', (e) => {
+    if (!wrap.contains(e.relatedTarget)) wrap.classList.remove('open');
+  });
+
+  function renderChips(log) {
+    if (!wrap.contains(document.activeElement)) return; // focus already left
+    const midnight = new Date().setHours(0, 0, 0, 0);
+    const today = new Map(labelTotals(log, midnight).map((r) => [r.label, r.min]));
+    const labels = recentLabels(log);
+    chips.replaceChildren(
+      ...labels.map((label) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip';
+        btn.append(label);
+        const min = today.get(label);
+        if (min) {
+          const note = document.createElement('span');
+          note.className = 'chip-min';
+          note.textContent = ` · ${min}m`;
+          btn.append(note);
+        }
+        btn.addEventListener('click', () => {
+          input.value = label;
+          wrap.classList.add('has-label');
+          commit(label);
+          wrap.classList.remove('open');
+          btn.blur();
+        });
+        return btn;
+      })
+    );
+    wrap.classList.toggle('open', labels.length > 0);
+  }
+
+  return (state) => {
+    current = state.label ?? '';
+    // Never repaint under the user's cursor mid-edit.
+    if (document.activeElement !== input) {
+      input.value = current;
+      wrap.classList.toggle('has-label', current !== '');
+    }
+  };
 }
 
 // Wires the pomodoro/timer/stopwatch tabs (when the page has them) and
