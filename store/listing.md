@@ -182,26 +182,28 @@ Offers the same compact timer as a Chrome side panel, so the user can keep
 it visible next to the page they are working on. Opened only by the user.
 ```
 
-`declarativeNetRequest` (optional, requested at runtime)
+`declarativeNetRequestWithHostAccess`
 
 ```
 Powers the opt-in site blocking feature: while a focus session runs, page
 loads of domains the user listed are redirected to a calm extension page
-showing the remaining time. Rules exist only while focus runs and only for
-the user's own list. The permission is requested the first time the user
-enables the feature — never at install — and the feature degrades to a
-no-op if it is declined or revoked.
+showing the remaining time, using Chrome's own rule engine. This form of
+the permission shows no install-time warning and can act on nothing until
+the user also grants host access (below); rules exist only while focus runs
+and only for the user's own list. (declarativeNetRequest itself cannot be an
+optional permission, so this host-gated variant is what keeps blocking opt-in.)
 ```
 
 **Host permissions** (`<all_urls>`, optional, requested at runtime)
 
 ```
-Required by Chrome for declarativeNetRequest redirect rules and to move
-already-open tabs of the user's blocked sites to the quiet page when focus
-starts. Requested together with declarativeNetRequest only when the user
-enables site blocking. Ember makes no network requests, injects no scripts
-into pages, and never reads page content; tab URLs are matched locally
-against the user's blocklist and are not stored or transmitted.
+The only permission Ember requests at runtime — the first time the user
+turns on site blocking, never at install. The blocking rules need host
+access to redirect the user's listed sites to the quiet page, and to move
+already-open tabs of those sites there when focus starts. Ember makes no
+network requests, injects no scripts into pages, and never reads page
+content; tab URLs are matched locally against the user's blocklist and are
+not stored or transmitted. Decline or revoke it and blocking does nothing.
 ```
 
 **Remote code**: No, this extension does not use remote code.

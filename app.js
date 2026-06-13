@@ -317,10 +317,13 @@ for (const input of settingToggles) {
 
 /* ---------- site blocking: the toggle carries a permission ask ---------- */
 
-// Redirecting pages needs declarativeNetRequest plus host access — optional
-// permissions, so Chrome's consent dialog appears the first time the toggle
-// goes on (and never at install). Declined means the toggle stays off.
-const BLOCK_PERMS = { permissions: ['declarativeNetRequest'], origins: ['<all_urls>'] };
+// Redirecting pages needs host access to the sites being blocked. The DNR
+// capability itself ships as declarativeNetRequestWithHostAccess — warning-
+// free, never prompted at install — because declarativeNetRequest cannot be
+// an optional permission. So host access is the only thing we request, and
+// Chrome's consent dialog appears the first time the toggle goes on (never
+// at install). Declined means the toggle stays off.
+const BLOCK_PERMS = { origins: ['<all_urls>'] };
 const blockToggle = $('block-toggle');
 const blockListInput = $('block-list');
 

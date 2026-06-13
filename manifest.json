@@ -4,8 +4,7 @@
   "version": "1.4.0",
   "description": "A calm, focused pomodoro timer — plus a one-shot timer and stopwatch. Toolbar countdown, full-page focus view, stats, gentle chimes.",
   "minimum_chrome_version": "116",
-  "permissions": ["alarms", "storage", "notifications", "offscreen", "idle", "contextMenus", "sidePanel"],
-  "optional_permissions": ["declarativeNetRequest"],
+  "permissions": ["alarms", "storage", "notifications", "offscreen", "idle", "contextMenus", "sidePanel", "declarativeNetRequestWithHostAccess"],
   "optional_host_permissions": ["<all_urls>"],
   "web_accessible_resources": [
     {

@@ -32,8 +32,8 @@ Chrome when you uninstall the extension.
 ## Site blocking
 
 Site blocking is **off by default** and fully opt-in. If you enable it,
-Chrome asks for two additional permissions at that moment (never at
-install): `declarativeNetRequest` and host access. They are used solely
+Chrome asks for one additional permission at that moment (never at
+install): host access to the sites you want blocked. It is used solely
 to redirect page loads of the domains **you listed**, **only while a
 focus session is running**, to a local "it can wait" page bundled with
 the extension, and to move already-open tabs of those domains to that
@@ -59,7 +59,10 @@ revoke the permission and the feature simply does nothing.
 - **contextMenus** — start/pause, skip, and stats items on the toolbar
   icon's right-click menu.
 - **sidePanel** — offers the timer in Chrome's side panel.
-- **declarativeNetRequest + host access** — optional, runtime-requested,
+- **declarativeNetRequestWithHostAccess** — Chrome's site-blocking rule
+  engine, declared with no install-time warning; it can act only on sites
+  you grant host access to.
+- **host access** — optional and requested at runtime (never at install),
   used only for the site blocking described above.
 
 ## Changes

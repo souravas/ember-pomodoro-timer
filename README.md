@@ -63,9 +63,11 @@ Quality-of-life around the cycle:
 - **Manifest V3**, no remote code, no install-time host permissions.
   Permissions used: `alarms`, `storage`, `notifications`, `offscreen`,
   `idle` (lock-pause), `contextMenus` (toolbar menu), `sidePanel`. Site
-  blocking needs `declarativeNetRequest` + host access, so those are
-  **optional permissions** — Chrome asks only when the toggle is first
-  flipped, and everything degrades gracefully if they're never granted.
+  blocking uses `declarativeNetRequestWithHostAccess` — declared up front
+  but warning-free, and able to act on nothing until host access is granted.
+  That host access (`<all_urls>`) is the **one optional permission**, asked
+  for only when the toggle is first flipped (`declarativeNetRequest` itself
+  can't be optional), and everything degrades gracefully if it's declined.
 - Site blocking ([core/block.js](core/block.js)) turns the blocklist into
   `declarativeNetRequest` dynamic rules that redirect listed domains (and
   subdomains) to [blocked.html](blocked.html) — rules are synced on every

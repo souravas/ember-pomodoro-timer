@@ -479,17 +479,14 @@ chrome.storage.onChanged.addListener((changes, area) => {
 /* ---------- site blocking: DNR rules track the timer ---------- */
 
 // Every state write lands here (via setState), so the blocklist rules can
-// never drift from what the timer is doing. The declarativeNetRequest
-// permission is optional — granted the first time the user flips the toggle
-// — so everything is guarded: without the grant this is a no-op, and a
-// blocking failure must never break a phase transition.
+// never drift from what the timer is doing. Host access is optional — granted
+// the first time the user flips the toggle — so everything is guarded:
+// without the grant this is a no-op, and a blocking failure must never break
+// a phase transition.
 async function syncBlocking(state) {
   if (!chrome.declarativeNetRequest) return;
   try {
-    const granted = await chrome.permissions.contains({
-      permissions: ['declarativeNetRequest'],
-      origins: ['<all_urls>'],
-    });
+    const granted = await chrome.permissions.contains({ origins: ['<all_urls>'] });
     if (!granted) return;
     const hosts = blockingActive(state, WORK_PHASES) ? parseBlockList(state.settings.blockList) : [];
     const existing = await chrome.declarativeNetRequest.getDynamicRules();
