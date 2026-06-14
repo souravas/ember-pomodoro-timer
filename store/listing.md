@@ -75,6 +75,9 @@ THE QUIET DETAILS
 
 BUILT TO BE TRUSTWORTHY
 
+• Open source — the whole extension is on GitHub, so every claim below is
+  something you can read and verify, not just take on trust:
+  https://github.com/souravas/ember-pomodoro-timer
 • No data collection — nothing ever leaves your machine.
 • No install-time host permissions. Site blocking asks for its permission
   only when you turn it on, and works only on the domains you list.
@@ -91,6 +94,18 @@ the count so you can keep your attention on the work.
 
 **Category**: Productivity → Workflow & Planning
 **Language**: English
+
+**Homepage URL**
+
+```
+https://github.com/souravas/ember-pomodoro-timer
+```
+
+**Support URL**
+
+```
+https://github.com/souravas/ember-pomodoro-timer/issues
+```
 
 **Graphic assets** (files in `store/assets/`; to regenerate see `store/src/README.md`)
 
