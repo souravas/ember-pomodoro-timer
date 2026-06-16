@@ -1,5 +1,8 @@
 # Chrome Web Store listing — Ember
 
+**Live listing:** https://chromewebstore.google.com/detail/jfcemebmihkhedalgindnekhoieennpe
+(extension ID `jfcemebmihkhedalgindnekhoieennpe`)
+
 Everything below maps 1:1 to a field in the [Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 Copy-paste as you fill in the submission.
 

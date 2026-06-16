@@ -1,5 +1,7 @@
 # Ember — Pomodoro Timer
 
+**[▸ Install from the Chrome Web Store](https://chromewebstore.google.com/detail/jfcemebmihkhedalgindnekhoieennpe)**
+
 A calm, focused pomodoro timer as a Chrome extension. Toolbar countdown badge,
 compact popup for quick control, a **side panel** that stays beside the page,
 and a full-page focus view with settings, **zen mode** (press `z`), and a
@@ -51,7 +53,14 @@ Quality-of-life around the cycle:
 - Settings sync across machines via `chrome.storage.sync`; stats stay local.
 - Themes can follow the OS (**auto** swatch) on top of the twelve palettes.
 
-## Load it in Chrome
+## Install
+
+The easiest way is the
+[**Chrome Web Store**](https://chromewebstore.google.com/detail/jfcemebmihkhedalgindnekhoieennpe) —
+one click, with automatic updates. Pin Ember to the toolbar afterwards; the
+badge shows minutes remaining while running.
+
+To run from source instead (for development):
 
 1. Open `chrome://extensions`
 2. Turn on **Developer mode** (top right)
