@@ -149,11 +149,17 @@ body {
   margin-top: 10px;
 }
 /* The return link wears the primary button's clothes; as an anchor it
-   needs its own box so the padding holds. */
+   needs its own box so the padding holds. The app's button padding lives
+   in app.css, which this page never loads — so set it here or the text
+   crowds the pill's edges. */
 .actions .btn-primary {
   display: inline-flex;
   align-items: center;
+  padding: 12px 28px;
   text-decoration: none;
+}
+.actions .btn-ghost {
+  padding: 11px 20px;
 }
 
 /* Display rules above must never beat hidden (same guard app.css keeps). */
